@@ -4,7 +4,8 @@ The "Brew it like you mean it" game on the home page (English and Arabic) is a r
 a glass teapot with a steel lid, a tulip glass on a saucer, the Majeed pouch, a tap, a cooker, steam, flames and liquid that stays inside its vessels.
 Five steps: leaves (+ cardamom), water from the tap, onto the cooker, boil, pour into the glass.
 
-You choose the tea first: Cardamom Pouch, Cardamom Tea 450 g / 800 g / 1 kg, Classic Black Tea 450 g / 800 g (the 5 kg trade pack is not offered). The chosen pack stands on the shelf, jars take their cap off, and only the cardamom products add green cardamom pods. The product list and pack sizes are `PRODUCTS` in `src/models.js`; the pack pictures are in `products/`.
+You choose the tea first: Cardamom Pouch, Cardamom Tea 450 g / 800 g / 1 kg, Classic Black Tea 450 g / 800 g, and the gold Golden Majeed 600 g tin (the 5 kg trade pack is not offered). The chosen pack stands on the shelf, jars take their cap off, and only the cardamom products add green cardamom pods. The product list and pack sizes are `PRODUCTS` in `src/models.js`; the pack pictures are in `products/`.
+To add a product: put its transparent photo (720 px tall, webp) in `products/`, add it to `PRODUCTS` in `src/models.js`, and run `python3 products/add_profile.py <slug> <cap_row>` (the pixel row where the lid / cap sits on the body) to store its outline in `products/profiles.json` and `src/profiles.js`.
 
 `index.html` at the repository root is the whole site as one file; the compiled game is embedded in it.
 This folder holds the game's source so it can be changed later.

@@ -15,6 +15,10 @@ cd ../game3d && npm install && node build.mjs dist/majeed3d.min.js --min && cd .
 python3 integrate.py original.html ../game3d/dist/majeed3d.min.js ../index.html
 ```
 
+## Products
+The Golden Majeed 600 g tin is added by `add_golden()` in `integrate.py` (data in `GOLD`; its photo is `assets/revised-golden-600.webp`; its Kurdish wording is `KU_GOLDEN` in `ku_strings.py`).
+It appears in the product slider, the product index, as its own product page in English, Arabic and Kurdish, and in the tea game's product picker (`../game3d`).
+
 ## Fonts
 - **Arabic headlines: Arabic Typesetting.** **Kurdish: NRT.** Both are used automatically on any visitor's device that has them installed.
   To make every visitor see them, embed the font files: put `ArabicTypesetting.ttf`, `NRT-Reg.ttf` (and `NRT-Bd.ttf`) in `site-build/fonts/`,

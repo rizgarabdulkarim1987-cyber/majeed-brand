@@ -229,6 +229,8 @@ export const PRODUCTS = {
   'cardamom-1kg': { type: 'jar', h: 17.0, split: 0.165, card: true, cap: 0x2ba53a },
   'classic-450g': { type: 'jar', h: 13.0, split: 0.16, card: false, cap: 0x1d46c6 },
   'classic-800g': { type: 'jar', h: 15.5, split: 0.16, card: false, cap: 0x1d46c6 },
+  // the gold tin: a metal body (gold rim, no glass), and a domed lid that lifts off
+  'golden-600g': { type: 'jar', h: 16.0, card: false, cap: 0xeabf4a, metal: true },
 };
 
 /** A pack photo bent into a shallow 3D shell (like a round jar or a plump pouch): u across, v from v0 to v1 of the photo. */
@@ -294,16 +296,17 @@ export function buildPack(ctx, slug, tex) {
   const body = photoLathe(prof.r, H, W, 0, f0, 72);
   g.add(new THREE.Mesh(body.geo, photoMat(0.36, 0.5)));
   const base = new THREE.Mesh(new THREE.CircleGeometry(body.rBot, 40), new THREE.MeshStandardMaterial({ color: 0x1a110b, roughness: 0.7 })); base.rotation.x = Math.PI / 2; base.position.y = 0.02; g.add(base);
-  // the open mouth: a clear glass lip and the dark tea inside
-  const lip = new THREE.Mesh(new THREE.TorusGeometry(body.rTop * 0.985, 0.13, 10, 72), new THREE.MeshStandardMaterial({ color: 0xcfe2d6, roughness: 0.14, metalness: 0, envMap: ctx.envMap, envMapIntensity: 1.4 })); lip.rotation.x = Math.PI / 2; lip.position.y = hb; g.add(lip);
+  // the open mouth: a clear glass lip (a gold rim on the tin) and the dark tea inside
+  const lipMat = spec.metal ? new THREE.MeshStandardMaterial({ color: 0xc9992f, roughness: 0.3, metalness: 0.75, envMap: ctx.envMap, envMapIntensity: 1.1 }) : new THREE.MeshStandardMaterial({ color: 0xcfe2d6, roughness: 0.14, metalness: 0, envMap: ctx.envMap, envMapIntensity: 1.4 });
+  const lip = new THREE.Mesh(new THREE.TorusGeometry(body.rTop * 0.985, 0.13, 10, 72), lipMat); lip.rotation.x = Math.PI / 2; lip.position.y = hb; g.add(lip);
   const fill = new THREE.Mesh(new THREE.CircleGeometry(body.rTop * 0.96, 48), new THREE.MeshStandardMaterial({ color: 0x1b120b, roughness: 0.95 })); fill.rotation.x = -Math.PI / 2; fill.position.y = hb - 0.45; g.add(fill);
   const cap = new THREE.Group();
   const capPart = photoLathe(prof.r, H, W, f0, f1, 88);
   cap.add(new THREE.Mesh(capPart.geo, photoMat(0.4, 0.45)));
-  const capMat = new THREE.MeshStandardMaterial({ color: spec.cap, roughness: 0.34, metalness: 0, envMap: ctx.envMap, envMapIntensity: 0.55 });
+  const capMat = spec.metal ? new THREE.MeshStandardMaterial({ color: spec.cap, roughness: 0.27, metalness: 0.7, envMap: ctx.envMap, envMapIntensity: 0.95 }) : new THREE.MeshStandardMaterial({ color: spec.cap, roughness: 0.34, metalness: 0, envMap: ctx.envMap, envMapIntensity: 0.55 });
   const top = new THREE.Mesh(new THREE.CircleGeometry(capPart.rTop * 0.99, 56), capMat); top.rotation.x = -Math.PI / 2; top.position.y = hc - 0.01; cap.add(top);
   const bead = new THREE.Mesh(new THREE.TorusGeometry(capPart.rTop * 0.97, 0.16, 10, 72), capMat); bead.rotation.x = Math.PI / 2; bead.position.y = hc - 0.04; cap.add(bead);
-  const plate = new THREE.Mesh(new THREE.TorusGeometry(capPart.rTop * 0.66, 0.05, 8, 56), new THREE.MeshStandardMaterial({ color: spec.cap, roughness: 0.5, envMap: ctx.envMap, envMapIntensity: 0.3 })); plate.rotation.x = Math.PI / 2; plate.position.y = hc + 0.02; plate.material.color.multiplyScalar(0.72); cap.add(plate);
+  const plate = new THREE.Mesh(new THREE.TorusGeometry(capPart.rTop * 0.66, 0.05, 8, 56), new THREE.MeshStandardMaterial({ color: spec.cap, roughness: 0.5, envMap: ctx.envMap, envMapIntensity: 0.3 })); plate.rotation.x = Math.PI / 2; plate.position.y = hc + 0.02; plate.material.color.multiplyScalar(0.72); if (!spec.metal) cap.add(plate);
   const under = new THREE.Mesh(new THREE.CircleGeometry(capPart.rBot * 0.965, 48), new THREE.MeshStandardMaterial({ color: new THREE.Color(spec.cap).multiplyScalar(0.34), roughness: 0.6, side: THREE.DoubleSide })); under.rotation.x = Math.PI / 2; under.position.y = 0.05; cap.add(under);
   cap.position.set(0, hb, 0);
   g.add(cap);
