@@ -9,6 +9,8 @@ Fonts: put ArabicTypesetting.ttf, NRT-Reg.ttf and NRT-Bd.ttf in site-build/fonts
 """
 import base64, json, os, re, sys
 here = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, here)
+from facts import facts_html, FACTS_CSS
 
 orig_path, bundle_path, out_path = sys.argv[1:4]
 s = open(orig_path, encoding='utf-8').read()
@@ -240,6 +242,39 @@ WIRING = r'''  /* ---- tea game: a real WebGL 3D kitchen, five steps from leaf t
     } else boot();
   }
 
+  /* ---- "Majeed in numbers": the figures count up and the pictures play while the section is on screen ---- */
+  var fg = $('.facts-grid');
+  if (fg) {
+    var fnums = $$('.fact-num', fg), AD = '٠١٢٣٤٥٦٧٨٩';
+    var fmt = function (n) {
+      var t = String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      return (ar || ku) ? t.replace(/\d/g, function (d) { return AD[+d]; }).replace(/,/g, '٬') : t;
+    };
+    var counted = false;
+    var count = function () {
+      if (counted) return; counted = true;
+      fnums.forEach(function (el, k) {
+        var to = +el.getAttribute('data-to'), t0 = performance.now() + 250 + k * 160, dur = 2300;
+        var tick = function (t) {
+          if (!motion) { el.textContent = fmt(to); return; }
+          var p = Math.min(1, Math.max(0, (t - t0) / dur)), e = 1 - Math.pow(1 - p, 3);
+          el.textContent = fmt(to * e);
+          if (p < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      });
+    };
+    var below = fg.getBoundingClientRect().top > innerHeight * 0.85;
+    if (motion && below) fnums.forEach(function (el) { el.textContent = fmt(0); });
+    onMotion.push(function () { if (!motion) fnums.forEach(function (el) { el.textContent = fmt(+el.getAttribute('data-to')); }); });
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function (en) {
+        if (en[0].isIntersecting) { fg.setAttribute('data-run', ''); if (motion) count(); else counted = true; }
+        else fg.removeAttribute('data-run');
+      }, { threshold: 0.25 }).observe(fg);
+    } else { fg.setAttribute('data-run', ''); fnums.forEach(function (el) { el.textContent = fmt(+el.getAttribute('data-to')); }); }
+  }
+
   /* ---- language menu: closes on an outside click or Escape ---- */
   $$('.lang-switch details', root).forEach(function (d) {
     document.addEventListener('click', function (e) { if (d.open && !d.contains(e.target)) d.open = false; });
@@ -282,9 +317,16 @@ for key in ('index.html', 'ar.html'):
     assert sec.count('class="gm-step"') == 5
     h = h[:a] + sec + h[b:]
 
+    # ---- 'Majeed in numbers': the second section of the home page (after the hero and its ticker)
+    i0 = h.index('<section class="moments section" id="moments">')
+    assert h.count('<section class="moments section" id="moments">') == 1 and h[:i0].endswith('</div>'), key
+    mj = h.index('window.__MJ=') + len('window.__MJ=')
+    n_products = len(json.JSONDecoder().raw_decode(h, mj)[0]['products'])
+    h = h[:i0] + facts_html(lang, n_products) + h[i0:]
+
     # ---- CSS
     last_style = h.rindex('</style>')
-    h = h[:last_style] + CSS_ADD + h[last_style:]
+    h = h[:last_style] + CSS_ADD + FACTS_CSS + h[last_style:]
     old_heat = 'at 82% 76%'
     assert old_heat in h
     h = h.replace(old_heat, 'at 60% 58%')
@@ -312,7 +354,7 @@ for key, h in list(pages.items()):
     pages[key] = h
 
 sys.path.insert(0, here)
-from ku_strings import KU_BY_INDEX, KU_SCRIPT, KU_GAME, KU_GOLDEN
+from ku_strings import KU_BY_INDEX, KU_SCRIPT, KU_GAME, KU_GOLDEN, KU_FACTS
 
 # ======================================================================================================================
 # LANGUAGES: Kurdish (Sorani), the language menu, and the fonts
@@ -324,7 +366,7 @@ KU = dict(KU_BY_INDEX)
 for k, v in KU_SCRIPT.items():
     assert KU.get(k, v) == v, ('conflicting translation', k)
     KU[k] = v
-for k, v in KU_GOLDEN.items():
+for k, v in list(KU_GOLDEN.items()) + list(KU_FACTS.items()):
     assert KU.get(k, v) == v, ('conflicting translation', k)
     KU[k] = v
 _g = KU_GAME
@@ -351,6 +393,7 @@ def ku_of(ar_text):
 # ---- 1) the shared page script learns a third language
 DET_KU = [ku_of(x) for x in ('تأمل لون الشاي في ضوء النهار.', 'دع البخار الدافئ يملأ اللحظة.', 'تبدأ حكاية كل كوب بورقة.', 'لمسة الهيل في مجموعة الشاي المعطر.', 'اهتمام بالتفاصيل، من الورقة إلى الكوب.', 'حضر الشاي حسب تعليمات العبوة.')]
 SCRIPT_PATCHES = [
+    ("var REVEAL = '.section-heading, ", "var REVEAL = '.section-heading, .fact, "),
     ("var D = window.__MJ || {}, lang = D.lang || 'en', ar = lang === 'ar';",
      "var D = window.__MJ || {}, lang = D.lang || 'en', ar = lang === 'ar', ku = lang === 'ku', L = function (e, a, k) { return ku ? k : ar ? a : e; };"),
     ("document.documentElement.lang = lang;", "document.documentElement.lang = ku ? 'ckb' : lang;"),
