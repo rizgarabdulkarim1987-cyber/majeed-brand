@@ -266,7 +266,7 @@ export class TeaGame {
     if (pack.cap) {
       const c0 = pack.cap.position.clone();
       await this.tw.run(1.0, (k) => { pack.cap.position.lerpVectors(c0, capHome, easeIO(k)); pack.cap.position.y += Math.sin(Math.PI * k) * 6; pack.cap.rotation.z = Math.sin(k * Math.PI * 2) * 0.2; }, linear);
-      g.add(pack.cap); pack.cap.position.set(0, pack.H - pack.capH, 0); pack.cap.rotation.set(0, 0, 0);
+      g.add(pack.cap); pack.cap.position.set(0, pack.capBase, 0); pack.cap.rotation.set(0, 0, 0);
     }
     this.phase('leaves-done');
   }
@@ -395,7 +395,7 @@ export class TeaGame {
     pot.group.add(pot.lid); pot.lid.scale.set(1, 1, 1); pot.lid.position.set(0, 0, 0); pot.lid.rotation.set(0, 0, 0);
     pot.group.position.copy(POS.potRest); pot.group.rotation.set(0, 0, 0);
     pack.group.position.copy(POS.shelfTop); pack.group.rotation.set(0, 0, 0);
-    if (pack.cap) { pack.group.add(pack.cap); pack.cap.position.set(0, pack.H - pack.capH, 0); pack.cap.rotation.set(0, 0, 0); }
+    if (pack.cap) { pack.group.add(pack.cap); pack.cap.position.set(0, pack.capBase, 0); pack.cap.rotation.set(0, 0, 0); }
     this.tap.lever.rotation.z = 0; this.stove.knob.rotation.z = 0;
     this.sim = { potVol: 0, cupVol: 0, brew: 0, boil: 0, agit: 0, flame: 0, tap: 0, steamPot: 0, steamCup: 0, flow: 0 };
     this.grains.clear(); this.puffs.reset();

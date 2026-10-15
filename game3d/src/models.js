@@ -248,18 +248,19 @@ function packShell(w, h, depth, v0, v1, sx = 28, sy = 30, pillow = 0) {
 
 /** A body of revolution whose outline is the photo's own outline, with the photo wrapped round it (front-on it matches the picture exactly). */
 function photoLathe(rFrac, H, W, f0, f1, segs = 64) {
-  const N = rFrac.length - 1, k0 = Math.floor(f0 * N + 1e-6), k1 = Math.ceil(f1 * N - 1e-6);
+  const N = rFrac.length - 1;
+  const rAt = (f) => { const x = Math.min(N, Math.max(0, f * N)), i = Math.floor(x), t = x - i; return (rFrac[i] * (1 - t) + rFrac[Math.min(N, i + 1)] * t) * H; };
+  const M = Math.max(3, Math.ceil((f1 - f0) * N * 1.5) + 1);
   const pos = [], uv = [], idx = [];
-  for (let k = k0; k <= k1; k++) {
-    const yf = Math.min(f1, Math.max(f0, k / N)), r = Math.max(0.05, rFrac[k] * H);
+  for (let j = 0; j < M; j++) {
+    const yf = f0 + ((f1 - f0) * j) / (M - 1), r = Math.max(0.05, rAt(yf));
     for (let i = 0; i <= segs; i++) {
       const th = (i / segs) * Math.PI * 2 - Math.PI;
       pos.push(r * Math.sin(th), (yf - f0) * H, r * Math.cos(th));
       uv.push(0.5 + (r * Math.sin(th)) / W, yf);
     }
   }
-  const rows = k1 - k0 + 1;
-  for (let j = 0; j < rows - 1; j++) for (let i = 0; i < segs; i++) {
+  for (let j = 0; j < M - 1; j++) for (let i = 0; i < segs; i++) {
     const a = j * (segs + 1) + i, b = a + 1, c = a + segs + 1, d = c + 1;
     idx.push(a, b, c, b, d, c);
   }
@@ -268,12 +269,12 @@ function photoLathe(rFrac, H, W, f0, f1, segs = 64) {
   geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
   geo.setIndex(idx); geo.computeVertexNormals();
   // make sure the surface faces outwards
-  const n = geo.attributes.normal, p0 = geo.attributes.position, probe = Math.floor(rows / 2) * (segs + 1) + Math.floor(segs * 0.5 + segs * 0.25);
+  const n = geo.attributes.normal, p0 = geo.attributes.position, probe = Math.floor(M / 2) * (segs + 1) + Math.floor(segs * 0.75);
   if (n.getX(probe) * p0.getX(probe) + n.getZ(probe) * p0.getZ(probe) < 0) {
     const flipped = []; for (let t = 0; t < idx.length; t += 3) flipped.push(idx[t], idx[t + 2], idx[t + 1]);
     geo.setIndex(flipped); geo.computeVertexNormals();
   }
-  return { geo, rTop: Math.max(0.05, rFrac[k1] * H), rBot: Math.max(0.05, rFrac[k0] * H) };
+  return { geo, rTop: Math.max(0.05, rAt(f1)), rBot: Math.max(0.05, rAt(f0)) };
 }
 
 export function buildPack(ctx, slug, tex) {
@@ -288,21 +289,25 @@ export function buildPack(ctx, slug, tex) {
     g.add(f, seal);
     return { group: g, cap: null, mouthLocal: new THREE.Vector3(0, H - 0.1, 0), spread: W * 0.34, W, H, spec };
   }
-  // a jar: a round body and a ribbed screw cap that really comes off
-  const hb = H * (1 - spec.split), hc = H * spec.split;
-  const body = photoLathe(prof.r, H, W, 0, 1 - spec.split, 72);
+  // a jar: a round body with an open glass mouth, and a ribbed screw cap (straight band, rounded shoulder, flat top) that really comes off
+  const f0 = prof.cap0, f1 = prof.cap1, hb = f0 * H, hc = (f1 - f0) * H;
+  const body = photoLathe(prof.r, H, W, 0, f0, 72);
   g.add(new THREE.Mesh(body.geo, photoMat(0.36, 0.5)));
   const base = new THREE.Mesh(new THREE.CircleGeometry(body.rBot, 40), new THREE.MeshStandardMaterial({ color: 0x1a110b, roughness: 0.7 })); base.rotation.x = Math.PI / 2; base.position.y = 0.02; g.add(base);
-  // the tea inside, seen when the cap is off
-  const fill = new THREE.Mesh(new THREE.CircleGeometry(body.rTop * 0.93, 40), new THREE.MeshStandardMaterial({ color: 0x1b120b, roughness: 0.95 })); fill.rotation.x = -Math.PI / 2; fill.position.y = hb - 0.5; g.add(fill);
+  // the open mouth: a clear glass lip and the dark tea inside
+  const lip = new THREE.Mesh(new THREE.TorusGeometry(body.rTop * 0.985, 0.13, 10, 72), new THREE.MeshStandardMaterial({ color: 0xcfe2d6, roughness: 0.14, metalness: 0, envMap: ctx.envMap, envMapIntensity: 1.4 })); lip.rotation.x = Math.PI / 2; lip.position.y = hb; g.add(lip);
+  const fill = new THREE.Mesh(new THREE.CircleGeometry(body.rTop * 0.96, 48), new THREE.MeshStandardMaterial({ color: 0x1b120b, roughness: 0.95 })); fill.rotation.x = -Math.PI / 2; fill.position.y = hb - 0.45; g.add(fill);
   const cap = new THREE.Group();
-  const capPart = photoLathe(prof.r, H, W, 1 - spec.split, 1, 72);
-  cap.add(new THREE.Mesh(capPart.geo, photoMat(0.42, 0.4)));
-  const top = new THREE.Mesh(new THREE.CircleGeometry(capPart.rTop * 0.97, 48), new THREE.MeshStandardMaterial({ color: spec.cap, roughness: 0.38, envMap: ctx.envMap, envMapIntensity: 0.5 })); top.rotation.x = -Math.PI / 2; top.position.y = hc - 0.02; cap.add(top);
-  const under = new THREE.Mesh(new THREE.CircleGeometry(capPart.rBot * 0.95, 40), new THREE.MeshStandardMaterial({ color: 0x0f2a14, roughness: 0.6, side: THREE.DoubleSide })); under.rotation.x = Math.PI / 2; under.position.y = 0.04; cap.add(under);
+  const capPart = photoLathe(prof.r, H, W, f0, f1, 88);
+  cap.add(new THREE.Mesh(capPart.geo, photoMat(0.4, 0.45)));
+  const capMat = new THREE.MeshStandardMaterial({ color: spec.cap, roughness: 0.34, metalness: 0, envMap: ctx.envMap, envMapIntensity: 0.55 });
+  const top = new THREE.Mesh(new THREE.CircleGeometry(capPart.rTop * 0.99, 56), capMat); top.rotation.x = -Math.PI / 2; top.position.y = hc - 0.01; cap.add(top);
+  const bead = new THREE.Mesh(new THREE.TorusGeometry(capPart.rTop * 0.97, 0.16, 10, 72), capMat); bead.rotation.x = Math.PI / 2; bead.position.y = hc - 0.04; cap.add(bead);
+  const plate = new THREE.Mesh(new THREE.TorusGeometry(capPart.rTop * 0.66, 0.05, 8, 56), new THREE.MeshStandardMaterial({ color: spec.cap, roughness: 0.5, envMap: ctx.envMap, envMapIntensity: 0.3 })); plate.rotation.x = Math.PI / 2; plate.position.y = hc + 0.02; plate.material.color.multiplyScalar(0.72); cap.add(plate);
+  const under = new THREE.Mesh(new THREE.CircleGeometry(capPart.rBot * 0.965, 48), new THREE.MeshStandardMaterial({ color: new THREE.Color(spec.cap).multiplyScalar(0.34), roughness: 0.6, side: THREE.DoubleSide })); under.rotation.x = Math.PI / 2; under.position.y = 0.05; cap.add(under);
   cap.position.set(0, hb, 0);
   g.add(cap);
-  return { group: g, cap, capH: hc, mouthLocal: new THREE.Vector3(0, hb, 0), spread: body.rTop * 0.72, W, H, spec };
+  return { group: g, cap, capBase: hb, capH: hc, mouthLocal: new THREE.Vector3(0, hb, 0), spread: body.rTop * 0.72, W, H, spec };
 }
 
 /* ---------------- stove ---------------- */
