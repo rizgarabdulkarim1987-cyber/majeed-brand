@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { glassFront, glassBack, liquidMaterials, makeLiquidUniforms } from './materials.js';
 import { rng } from './util.js';
+import { PROFILES } from './profiles.js';
 
 const V2 = (a) => a.map((p) => new THREE.Vector2(p[0], p[1]));
 
@@ -195,8 +196,8 @@ export function buildCup(ctx) {
   const outer = smooth([[0, 0], [1.9, 0], [2.25, 0.25], [2.35, 1.0], [2.2, 2.4], [1.85, 3.9], [1.72, 5.0], [1.86, 6.5], [2.3, 8.1], [2.65, 9.3], [2.72, 9.55]], 80);
   const inner = smooth([[0, 0.85], [1.6, 0.85], [2.1, 1.1], [2.15, 2.4], [1.75, 3.9], [1.6, 5.0], [1.73, 6.5], [2.18, 8.1], [2.52, 9.3], [2.58, 9.6]], 80);
   const vessel = makeVessel(inner), outerR = makeVessel(outer).R;
-  addGlass(g, lathe(outer, 56), ctx);
-  const rim = new THREE.Mesh(new THREE.TorusGeometry(2.65, 0.07, 8, 40), ctx.glassFrontMat); rim.rotation.x = Math.PI / 2; rim.position.y = 9.5; rim.layers.set(1); rim.renderOrder = 5; g.add(rim);
+  addGlass(g, lathe(outer, 72), ctx, { front: ctx.cupFrontMat });
+  const rim = new THREE.Mesh(new THREE.TorusGeometry(2.65, 0.07, 8, 48), ctx.cupFrontMat); rim.rotation.x = Math.PI / 2; rim.position.y = 9.5; rim.layers.set(1); rim.renderOrder = 5; g.add(rim);
   const u = makeLiquidUniforms(ctx.shared);
   const lm = liquidMaterials(u);
   const liqGeo = lathe(inner, 48);
@@ -209,19 +210,25 @@ export function buildCup(ctx) {
 
   const saucer = new THREE.Group(); saucer.name = 'saucer';
   const sp = smooth([[0, 0.08], [3.0, 0.08], [5.5, 0.6], [5.95, 1.2], [5.95, 1.36], [5.2, 0.96], [3.1, 0.62], [2.8, 0.66], [2.4, 0.56], [0, 0.56]], 80);
-  addGlass(saucer, new THREE.LatheGeometry(V2(sp), 64), ctx, { front: ctx.saucerFrontMat });
+  addGlass(saucer, new THREE.LatheGeometry(V2(sp), 72), ctx, { front: ctx.saucerFrontMat });
+  // a small steel teaspoon resting on the saucer
+  const spoon = new THREE.Group(); spoon.name = 'spoon';
+  const stem = new THREE.Mesh(taperedTube(new THREE.LineCurve3(new THREE.Vector3(-4.1, 0, 0), new THREE.Vector3(2.6, 0, 0)), 0.17, 0.3, 12, 8), ctx.mats.steel); spoon.add(stem);
+  const bowl = new THREE.Mesh(new THREE.SphereGeometry(1, 24, 14), ctx.mats.steel); bowl.scale.set(1.5, 0.32, 1.0); bowl.position.set(3.7, 0.0, 0); spoon.add(bowl);
+  spoon.position.set(-0.4, 1.02, 3.9); spoon.rotation.set(0, 0.2, 0.04);
+  saucer.add(spoon);
   return { group: g, saucer, vessel, liquidUniforms: u, liquidMeshes: liq, baseY: 0.56 };
 }
 
 /* ---------------- the products you can brew ---------------- */
 // real pack sizes (cm) and photo proportions; every product except the 5 kg trade pack
 export const PRODUCTS = {
-  'cardamom-pouch': { type: 'pouch', h: 17.5, aspect: 0.6714, card: true },
-  'cardamom-450g': { type: 'jar', h: 13.0, aspect: 0.6571, split: 0.165, card: true },
-  'cardamom-800g': { type: 'jar', h: 15.5, aspect: 0.6607, split: 0.165, card: true },
-  'cardamom-1kg': { type: 'jar', h: 17.0, aspect: 0.6357, split: 0.165, card: true },
-  'classic-450g': { type: 'jar', h: 13.0, aspect: 0.6339, split: 0.16, card: false },
-  'classic-800g': { type: 'jar', h: 15.5, aspect: 0.6054, split: 0.16, card: false },
+  'cardamom-pouch': { type: 'pouch', h: 17.5, card: true },
+  'cardamom-450g': { type: 'jar', h: 13.0, split: 0.165, card: true, cap: 0x2ba53a },
+  'cardamom-800g': { type: 'jar', h: 15.5, split: 0.165, card: true, cap: 0x2ba53a },
+  'cardamom-1kg': { type: 'jar', h: 17.0, split: 0.165, card: true, cap: 0x2ba53a },
+  'classic-450g': { type: 'jar', h: 13.0, split: 0.16, card: false, cap: 0x1d46c6 },
+  'classic-800g': { type: 'jar', h: 15.5, split: 0.16, card: false, cap: 0x1d46c6 },
 };
 
 /** A pack photo bent into a shallow 3D shell (like a round jar or a plump pouch): u across, v from v0 to v1 of the photo. */
@@ -239,27 +246,63 @@ function packShell(w, h, depth, v0, v1, sx = 28, sy = 30, pillow = 0) {
   return geo;
 }
 
+/** A body of revolution whose outline is the photo's own outline, with the photo wrapped round it (front-on it matches the picture exactly). */
+function photoLathe(rFrac, H, W, f0, f1, segs = 64) {
+  const N = rFrac.length - 1, k0 = Math.floor(f0 * N + 1e-6), k1 = Math.ceil(f1 * N - 1e-6);
+  const pos = [], uv = [], idx = [];
+  for (let k = k0; k <= k1; k++) {
+    const yf = Math.min(f1, Math.max(f0, k / N)), r = Math.max(0.05, rFrac[k] * H);
+    for (let i = 0; i <= segs; i++) {
+      const th = (i / segs) * Math.PI * 2 - Math.PI;
+      pos.push(r * Math.sin(th), (yf - f0) * H, r * Math.cos(th));
+      uv.push(0.5 + (r * Math.sin(th)) / W, yf);
+    }
+  }
+  const rows = k1 - k0 + 1;
+  for (let j = 0; j < rows - 1; j++) for (let i = 0; i < segs; i++) {
+    const a = j * (segs + 1) + i, b = a + 1, c = a + segs + 1, d = c + 1;
+    idx.push(a, b, c, b, d, c);
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  geo.setIndex(idx); geo.computeVertexNormals();
+  // make sure the surface faces outwards
+  const n = geo.attributes.normal, p0 = geo.attributes.position, probe = Math.floor(rows / 2) * (segs + 1) + Math.floor(segs * 0.5 + segs * 0.25);
+  if (n.getX(probe) * p0.getX(probe) + n.getZ(probe) * p0.getZ(probe) < 0) {
+    const flipped = []; for (let t = 0; t < idx.length; t += 3) flipped.push(idx[t], idx[t + 2], idx[t + 1]);
+    geo.setIndex(flipped); geo.computeVertexNormals();
+  }
+  return { geo, rTop: Math.max(0.05, rFrac[k1] * H), rBot: Math.max(0.05, rFrac[k0] * H) };
+}
+
 export function buildPack(ctx, slug, tex) {
-  const spec = PRODUCTS[slug];
-  const H = spec.h, W = H * spec.aspect;
+  const spec = PRODUCTS[slug], prof = PROFILES[slug];
+  const H = spec.h, W = H * prof.aspect;
   const g = new THREE.Group(); g.name = 'pack';
-  const mat = () => new THREE.MeshStandardMaterial({ map: tex, alphaTest: 0.5, roughness: 0.5, metalness: 0, envMap: ctx.envMap, envMapIntensity: 0.22, side: THREE.DoubleSide, emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: 0.16 });
+  const photoMat = (rough = 0.45, env = 0.35) => new THREE.MeshStandardMaterial({ map: tex, roughness: rough, metalness: 0, envMap: ctx.envMap, envMapIntensity: env, emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: 0.38 });
   if (spec.type === 'pouch') {
-    const f = new THREE.Mesh(packShell(W, H, 3.6, 0, 1, 26, 36, 1), mat());
+    const f = new THREE.Mesh(packShell(W, H, 3.6, 0, 1, 26, 36, 1), new THREE.MeshStandardMaterial({ map: tex, alphaTest: 0.5, roughness: 0.5, metalness: 0, envMap: ctx.envMap, envMapIntensity: 0.22, side: THREE.DoubleSide, emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: 0.16 }));
     const seal = new THREE.Mesh(new THREE.BoxGeometry(W * 0.99, 0.5, 0.35), new THREE.MeshStandardMaterial({ color: 0xe2b23a, metalness: 0.9, roughness: 0.3, envMap: ctx.envMap }));
     seal.position.set(0, H - 0.1, 0);
     g.add(f, seal);
     return { group: g, cap: null, mouthLocal: new THREE.Vector3(0, H - 0.1, 0), spread: W * 0.34, W, H, spec };
   }
-  // jar: a body and a screw cap that comes off
+  // a jar: a round body and a ribbed screw cap that really comes off
   const hb = H * (1 - spec.split), hc = H * spec.split;
-  const body = new THREE.Mesh(packShell(W, hb, W * 0.82, 0, 1 - spec.split, 26, 28), mat());
-  g.add(body);
+  const body = photoLathe(prof.r, H, W, 0, 1 - spec.split, 72);
+  g.add(new THREE.Mesh(body.geo, photoMat(0.36, 0.5)));
+  const base = new THREE.Mesh(new THREE.CircleGeometry(body.rBot, 40), new THREE.MeshStandardMaterial({ color: 0x1a110b, roughness: 0.7 })); base.rotation.x = Math.PI / 2; base.position.y = 0.02; g.add(base);
+  // the tea inside, seen when the cap is off
+  const fill = new THREE.Mesh(new THREE.CircleGeometry(body.rTop * 0.93, 40), new THREE.MeshStandardMaterial({ color: 0x1b120b, roughness: 0.95 })); fill.rotation.x = -Math.PI / 2; fill.position.y = hb - 0.5; g.add(fill);
   const cap = new THREE.Group();
-  const capMesh = new THREE.Mesh(packShell(W, hc, W * 0.82, 1 - spec.split, 1, 26, 8), mat());
-  cap.add(capMesh); cap.position.set(0, hb, 0);
+  const capPart = photoLathe(prof.r, H, W, 1 - spec.split, 1, 72);
+  cap.add(new THREE.Mesh(capPart.geo, photoMat(0.42, 0.4)));
+  const top = new THREE.Mesh(new THREE.CircleGeometry(capPart.rTop * 0.97, 48), new THREE.MeshStandardMaterial({ color: spec.cap, roughness: 0.38, envMap: ctx.envMap, envMapIntensity: 0.5 })); top.rotation.x = -Math.PI / 2; top.position.y = hc - 0.02; cap.add(top);
+  const under = new THREE.Mesh(new THREE.CircleGeometry(capPart.rBot * 0.95, 40), new THREE.MeshStandardMaterial({ color: 0x0f2a14, roughness: 0.6, side: THREE.DoubleSide })); under.rotation.x = Math.PI / 2; under.position.y = 0.04; cap.add(under);
+  cap.position.set(0, hb, 0);
   g.add(cap);
-  return { group: g, cap, capH: hc, mouthLocal: new THREE.Vector3(0, hb, 0), spread: W * 0.26, W, H, spec };
+  return { group: g, cap, capH: hc, mouthLocal: new THREE.Vector3(0, hb, 0), spread: body.rTop * 0.72, W, H, spec };
 }
 
 /* ---------------- stove ---------------- */
@@ -350,7 +393,8 @@ export function makeGlassMaterials(shared, envCube) {
   shared.tEnv.value = envCube;
   return {
     glassFrontMat: glassFront(shared, { refr: 0.065, env: 3.2, tint: 0xd3ece2, edgeDark: 0.4 }),
-    saucerFrontMat: glassFront(shared, { refr: 0.02, env: 0.9, tint: 0xf0f8f4, edgeDark: 0.12 }),
+    cupFrontMat: glassFront(shared, { refr: 0.011, env: 2.8, tint: 0xe3f3ec, edgeDark: 0.2 }),
+    saucerFrontMat: glassFront(shared, { refr: 0.005, env: 0.5, tint: 0xf7fbf9, edgeDark: 0.04 }),
     glassBackMat: glassBack(shared, { env: 2.6, tint: 0xdff2ea }),
   };
 }

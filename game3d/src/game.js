@@ -10,7 +10,7 @@ import { Sfx } from './audio.js';
 const V3 = THREE.Vector3;
 const FOV = 34;
 const POT_FILL = 0.62;        // share of the pot that holds water
-const CUP_FILL = 0.9;         // how full the glass gets
+const CUP_FILL = 0.92;        // how full the glass gets
 const G_STREAM = 760;         // gravity used for the visible stream (cm/s^2)
 
 const WARE = 1.22;           // teapot, glass and saucer are built life-size and shown a little larger
