@@ -1,0 +1,27 @@
+# Building index.html
+
+`index.html` at the repository root is generated: it is the original Majeed site upload plus the 3D tea game, the product picker,
+Central Kurdish (Sorani) pages and the language menu. Do not edit it by hand; change the sources here and rebuild.
+
+## Rebuild
+```
+# 1. the original upload (first commit of this repo)
+git show 445639b:index.html > original.html
+
+# 2. the 3D game engine (source in ../game3d)
+cd ../game3d && npm install && node build.mjs dist/majeed3d.min.js --min && cd ../site-build
+
+# 3. the site
+python3 integrate.py original.html ../game3d/dist/majeed3d.min.js ../index.html
+```
+
+## Fonts
+- **Arabic headlines: Arabic Typesetting.** **Kurdish: NRT.** Both are used automatically on any visitor's device that has them installed.
+  To make every visitor see them, embed the font files: put `ArabicTypesetting.ttf`, `NRT-Reg.ttf` (and `NRT-Bd.ttf`) in `site-build/fonts/`,
+  run `pip install fonttools brotli`, and rebuild. Only add fonts you hold a web licence for; the files in `fonts/` are embedded in `index.html`.
+- Until then Arabic headlines fall back to **Amiri** (SIL Open Font License, `fonts-open/`) and Kurdish to Noto Sans Arabic.
+- `size-adjust` for Arabic Typesetting (it is small for its font size) is `FONT_FACES` in `integrate.py`.
+
+## Kurdish text
+All Kurdish strings are in `ku_strings.py` (page text keyed by its Arabic original; the game wording is in `KU_GAME` and in `WIRING` in `integrate.py`).
+The build stops and lists any Arabic string that has no Kurdish translation.
