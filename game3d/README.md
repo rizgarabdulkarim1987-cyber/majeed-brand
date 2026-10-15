@@ -2,7 +2,9 @@
 
 The "Brew it like you mean it" game on the home page (English and Arabic) is a real WebGL 3D scene:
 a glass teapot with a steel lid, a tulip glass on a saucer, the Majeed pouch, a tap, a cooker, steam, flames and liquid that stays inside its vessels.
-Five steps: leaves + cardamom, water from the tap, onto the cooker, boil, pour into the glass.
+Five steps: leaves (+ cardamom), water from the tap, onto the cooker, boil, pour into the glass.
+
+You choose the tea first: Cardamom Pouch, Cardamom Tea 450 g / 800 g / 1 kg, Classic Black Tea 450 g / 800 g (the 5 kg trade pack is not offered). The chosen pack stands on the shelf, jars take their cap off, and only the cardamom products add green cardamom pods. The product list and pack sizes are `PRODUCTS` in `src/models.js`; the pack pictures are in `products/`.
 
 `index.html` at the repository root is the whole site as one file; the compiled game is embedded in it.
 This folder holds the game's source so it can be changed later.

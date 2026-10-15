@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { clamp, lerp, sstep, easeIO, easeOut, easeSine, linear, rng, Tweens } from './util.js';
 import { makeEnvCanvas, makeWallCanvas, makeWoodCanvas, makeBlobCanvas, makeSpriteCanvas, canvasTexture } from './textures.js';
 import { makeShared, streamMaterial } from './materials.js';
-import { buildPot, buildCup, buildPouch, buildStove, buildTap, buildLamp, buildRoom, makeMaterials, makeGlassMaterials, labelMaterial } from './models.js';
+import { buildPot, buildCup, buildPack, PRODUCTS, buildStove, buildTap, buildLamp, buildRoom, makeMaterials, makeGlassMaterials, labelMaterial } from './models.js';
 import { Puffs, Flames, Grains, Bubbles, Stream } from './fx.js';
 import { Sfx } from './audio.js';
 
@@ -19,7 +19,7 @@ const POS = {
   potTap: new V3(-19, 0, -8.5),
   stove: new V3(19, 0, -8),
   glass: new V3(41.5, 0, 8),
-  shelfTop: new V3(-41, 29.5, -15),
+  shelfTop: new V3(-46, 29.5, -15),              // where the jar / pouch stands (the shelf itself is centred at x=-41)
   lidPark: new V3(-37, 0, 17),
   tap: new V3(-1, 0, -14),
   lamp: new V3(8, 44, -12),
@@ -83,7 +83,7 @@ export class TeaGame {
       shared: this.shared, envMap: this.envMap,
       mats: makeMaterials(this.envMap),
       wallTex: canvasTexture(makeWallCanvas()), woodTex: canvasTexture(makeWoodCanvas()),
-      pouchTex: this.loadTex(this.imgs.pouch), logoTex: this.loadTex(this.imgs.logo),
+      logoTex: this.loadTex(this.imgs.logo),
     });
     Object.assign(ctx, makeGlassMaterials(this.shared, cubeRT.texture));
     ctx.labelMat = labelMaterial(ctx.logoTex, this.envMap); ctx.labelMat.alphaTest = 0.35;
@@ -110,7 +110,7 @@ export class TeaGame {
     this.flameGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: sprite, color: 0x6aa8ff, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }));
     this.flameGlow.scale.set(13, 7, 1); this.flameGlow.position.set(POS.stove.x, 9.6, POS.stove.z + 1); scene.add(this.flameGlow);
     this.tap = buildTap(ctx); this.tap.group.position.copy(POS.tap); scene.add(this.tap.group);
-    this.pouch = buildPouch(ctx); scene.add(this.pouch.group);
+    this.packTex = {}; this.product = 'cardamom-pouch'; this.mountPack(this.product);
 
     // teapot (with its steel lid), glass and saucer
     this.pot = buildPot(ctx); scene.add(this.pot.group);
@@ -119,7 +119,7 @@ export class TeaGame {
     this.cup.group.position.set(POS.glass.x, this.cup.baseY * WARE, POS.glass.z); this.cup.group.scale.setScalar(WARE); scene.add(this.cup.group);
 
     // grains and bubbles live in pot space
-    this.grains = new Grains(this.pot.group, this.pot.vessel, 210, 22, this.envMap);
+    this.grains = new Grains(this.pot.group, this.pot.vessel, 240, 24, this.envMap);
     this.bubbles = new Bubbles(this.pot.group, this.pot.vessel, 70);
 
     // streams
@@ -138,7 +138,7 @@ export class TeaGame {
       const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: blobTex, transparent: true, depthWrite: false, opacity: o }));
       m.rotation.x = -Math.PI / 2; m.scale.set(w, d, 1); m.renderOrder = 0.5; scene.add(m); return m;
     };
-    this.blobs = { pot: mkBlob(25, 20), cup: mkBlob(20, 17), lid: mkBlob(20, 18, 0.8), pouch: mkBlob(16, 9, 0.7), stove: mkBlob(42, 38, 0.8) };
+    this.blobs = { pot: mkBlob(25, 20), cup: mkBlob(20, 17), lid: mkBlob(20, 18, 0.8), pouch: mkBlob(14, 8, 0.7), stove: mkBlob(42, 38, 0.8) };
     this.blobs.stove.position.set(POS.stove.x, 0.03, POS.stove.z + 1);
     this.blobs.cup.position.set(POS.glass.x + 1, 0.03, POS.glass.z + 0.5);
 
@@ -175,6 +175,30 @@ export class TeaGame {
     this.camera.updateProjectionMatrix();
   }
 
+  /* ---------------- choosing the tea ---------------- */
+  mountPack(slug) {
+    const spec = PRODUCTS[slug];
+    if (this.pack) {
+      this.scene.remove(this.pack.group);
+      if (this.pack.cap && this.pack.cap.parent) this.pack.cap.parent.remove(this.pack.cap);
+      this.pack.group.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material && o.material.dispose) o.material.dispose(); });
+    }
+    const key = (this.imgs.prod || {})[slug];
+    this.packTex[slug] = this.packTex[slug] || this.loadTex(key);
+    this.pack = buildPack(this.ctx, slug, this.packTex[slug]);
+    this.pack.group.position.copy(POS.shelfTop); this.scene.add(this.pack.group);
+    this.product = slug; this.dirty = true;
+  }
+  /** Pick which product to brew. Allowed before a brew starts or after it finished (that starts a fresh brew). */
+  setProduct(slug) {
+    if (!PRODUCTS[slug] || this.state.busy) return false;
+    if (this.state.done > 0 && this.state.done < 5) return false;
+    if (this.state.done === 5) this.reset();
+    if (slug !== this.product) this.mountPack(slug);
+    this.emit();
+    return true;
+  }
+
   /* ---------------- the five steps ---------------- */
   run(n) {
     if (this.state.busy || n !== this.state.done + 1 || n > 5) return Promise.resolve();
@@ -184,7 +208,7 @@ export class TeaGame {
   }
 
   phase(p) { this.state.phase = p; this.emit(); }
-  emit() { this.onUpdate({ ...this.state, temp: Math.round(this.state.temp) }); }
+  emit() { this.onUpdate({ ...this.state, temp: Math.round(this.state.temp), card: PRODUCTS[this.product] ? PRODUCTS[this.product].card : true, product: this.product }); }
 
   arc(obj, a, b, lift, dur, ease = easeIO, tiltAmt = 0) {
     return this.tw.run(dur, (k) => {
@@ -195,38 +219,53 @@ export class TeaGame {
   loop(fn) { return new Promise((res) => { this.loops.push({ fn, res }); }); }
 
   async step1() {
-    const { pot, pouch } = this, lid = pot.lid;
+    const { pot } = this, lid = pot.lid, pack = this.pack, spec = pack.spec;
     this.phase('leaves');
     // lid lifts off and rests on the counter
     pot.group.updateMatrixWorld(true); this.scene.attach(lid);
-    const lid0 = lid.position.clone(), park = new V3(POS.lidPark.x, -12.2 * WARE, POS.lidPark.z);
+    const lid0 = lid.position.clone(), park = new V3(POS.lidPark.x, -(pot.rimY - 0.1) * WARE, POS.lidPark.z);
     this.sfx.click();
     await this.arc(lid, lid0, park, 9, 1.0, easeIO, 0.35); lid.rotation.z = 0;
-    // pouch comes down from the shelf and tilts over the open pot
-    const g = pouch.group, mouthTarget = new V3(pot.group.position.x - 0.6, pot.group.position.y + 12.3 * WARE + 5, pot.group.position.z);
+    const g = pack.group, sh = POS.shelfTop.clone();
+    // a jar: unscrew the cap and set it down beside the jar
+    let capHome = null, capSide = null;
+    if (pack.cap) {
+      this.scene.attach(pack.cap);
+      capHome = pack.cap.position.clone();
+      capSide = new V3(sh.x + pack.W + 0.8, sh.y + 0.05, sh.z + 0.6);
+      this.sfx.click();
+      await this.tw.run(0.55, (k) => { pack.cap.position.copy(capHome); pack.cap.position.y += Math.sin(Math.PI * k * 0.5) * 3.6; pack.cap.rotation.z = Math.sin(k * Math.PI) * 0.18; }, easeIO);
+      const c1 = pack.cap.position.clone();
+      await this.tw.run(0.6, (k) => { pack.cap.position.lerpVectors(c1, capSide, k); pack.cap.position.y += Math.sin(Math.PI * k) * 2.2; pack.cap.rotation.z = lerp(0.0, -0.08, k); }, easeIO);
+    }
+    // the pack comes down from the shelf and tilts over the open pot
+    const mouthTarget = new V3(pot.group.position.x - 0.6, pot.group.position.y + pot.rimY * WARE + 5, pot.group.position.z);
     const rotEnd = -1.95;
-    const endPos = new V3(); { const m = new THREE.Matrix4().makeRotationZ(rotEnd); const mp = pouch.mouthLocal.clone().applyMatrix4(m); endPos.copy(mouthTarget).sub(mp); }
-    const sh = POS.shelfTop.clone();
+    const endPos = new V3(); { const m = new THREE.Matrix4().makeRotationZ(rotEnd); const mp = pack.mouthLocal.clone().applyMatrix4(m); endPos.copy(mouthTarget).sub(mp); }
     await this.tw.run(1.3, (k) => { g.position.lerpVectors(sh, endPos, k); g.position.y += Math.sin(Math.PI * k) * 6; g.rotation.z = rotEnd * sstep(0.15, 1, k); }, easeIO);
-    // pour the grains
-    const dur = 2.8; let t0 = 0; let emitted = 0; const total = 232;
+    // pour the grains (black tea; green cardamom pods too when the product has cardamom)
+    const dur = 2.8; let emitted = 0; const total = 262;
     await this.tw.run(dur, (k) => {
       g.rotation.z = rotEnd + Math.sin(k * dur * 13) * 0.045 - 0.12 * Math.sin(Math.PI * k);
       const want = Math.floor(sstep(0, 0.97, k) * total);
       while (emitted < want) {
         emitted++;
-        const loc = pouch.mouthLocal.clone(); loc.x += (this.rand() - 0.5) * 6.5; loc.z += (this.rand() - 0.5) * 1.6;
+        const loc = pack.mouthLocal.clone(); loc.x += (this.rand() - 0.5) * 2 * pack.spread; loc.z += (this.rand() - 0.5) * 1.6;
         const w = g.localToWorld(loc); pot.group.updateMatrixWorld(true); const l = pot.group.worldToLocal(w);
-        this.grains.emit(l, emitted % 10 === 0);
+        this.grains.emit(l, spec.card && emitted % 10 === 0);
       }
-      t0 = k;
     }, linear);
-    void t0;
     await this.tw.wait(0.5);
-    // pouch goes back to the shelf
+    // the pack goes back to the shelf
     const cur = g.position.clone(), rz = g.rotation.z;
     await this.tw.run(1.2, (k) => { g.position.lerpVectors(cur, sh, k); g.position.y += Math.sin(Math.PI * k) * 5; g.rotation.z = lerp(rz, 0, sstep(0, 0.8, k)); }, easeIO);
     g.position.copy(sh); g.rotation.set(0, 0, 0);
+    // ...and the cap goes back on
+    if (pack.cap) {
+      const c0 = pack.cap.position.clone();
+      await this.tw.run(0.7, (k) => { pack.cap.position.lerpVectors(c0, capHome, k); pack.cap.position.y += Math.sin(Math.PI * k) * 3.2; pack.cap.rotation.z = lerp(-0.08, 0, k); }, easeIO);
+      g.add(pack.cap); pack.cap.position.set(0, pack.H - pack.capH, 0); pack.cap.rotation.set(0, 0, 0);
+    }
     this.phase('leaves-done');
   }
 
@@ -305,7 +344,7 @@ export class TeaGame {
     if (this.boilLoop) { this.boilLoop.stop(); this.boilLoop = null; }
     this.sfx.whoosh();
     // lift off the cooker and carry it to the glass
-    const cupTop = 18;                            // height the spout is held at
+    const cupTop = 25;                            // height the spout is held at
     const pose = (theta, travel) => {
       const lip = pot.lipLocal.clone().multiplyScalar(WARE).applyEuler(new THREE.Euler(0, 0, -theta));
       return new V3(POS.glass.x - travel - lip.x, cupTop - lip.y, POS.glass.z);
@@ -350,10 +389,11 @@ export class TeaGame {
   /* ---------------- reset ---------------- */
   reset(first) {
     this.tw.clear(); this.loops.length = 0; this.sfx.stopAll(); this.boilLoop = null;
-    const { pot, pouch } = this;
+    const { pot } = this, pack = this.pack;
     pot.group.add(pot.lid); pot.lid.scale.set(1, 1, 1); pot.lid.position.set(0, 0, 0); pot.lid.rotation.set(0, 0, 0);
     pot.group.position.copy(POS.potRest); pot.group.rotation.set(0, 0, 0);
-    pouch.group.position.copy(POS.shelfTop); pouch.group.rotation.set(0, 0, 0);
+    pack.group.position.copy(POS.shelfTop); pack.group.rotation.set(0, 0, 0);
+    if (pack.cap) { pack.group.add(pack.cap); pack.cap.position.set(0, pack.H - pack.capH, 0); pack.cap.rotation.set(0, 0, 0); }
     this.tap.lever.rotation.z = 0; this.stove.knob.rotation.z = 0;
     this.sim = { potVol: 0, cupVol: 0, brew: 0, boil: 0, agit: 0, flame: 0, tap: 0, steamPot: 0, steamCup: 0, flow: 0 };
     this.grains.clear(); this.puffs.reset();
@@ -480,7 +520,7 @@ export class TeaGame {
     this.puffAcc.pot += dt * 22 * hotPot;
     while (this.puffAcc.pot >= 1) {
       this.puffAcc.pot -= 1;
-      const p = new V3(-2.9 + (this.rand() - 0.5) * 1.5, 13.4, 0.5 + (this.rand() - 0.5) * 2.2).applyMatrix4(g.matrixWorld);
+      const p = new V3(pot.steamLocal.x + (this.rand() - 0.5) * 1.5, pot.steamLocal.y, pot.steamLocal.z + (this.rand() - 0.5) * 2.2).applyMatrix4(g.matrixWorld);
       this.puffs.emit(p, new V3((this.rand() - 0.5) * 1.2, 5 + this.rand() * 3, (this.rand() - 0.5) * 1.2), { life: 2.2 + this.rand(), s0: 1.5, s1: 4.6, a: 0.2 * hotPot + 0.05, drag: 0.5 });
     }
     this.puffAcc.spout += dt * 14 * hotPot;
@@ -510,11 +550,11 @@ export class TeaGame {
     b.pot.position.set(g.position.x + h * 0.15, surf + 0.04, g.position.z + h * 0.2 + 0.5);
     const sc = 1 + h * 0.05; b.pot.scale.set(25 * WARE * sc, 20 * WARE * sc, 1); b.pot.material.opacity = 0.9 / (1 + h * 0.1);
     const L = this.pot.lid;
-    if (L.parent !== g) { b.lid.visible = true; const h2 = Math.max(0, L.position.y + 12.2 * WARE); b.lid.position.set(L.position.x, 0.04, L.position.z + 0.3); b.lid.material.opacity = 0.8 / (1 + h2 * 0.12); } else b.lid.visible = false;
+    if (L.parent !== g) { b.lid.visible = true; const h2 = Math.max(0, L.position.y + (this.pot.rimY - 0.1) * WARE); b.lid.position.set(L.position.x, 0.04, L.position.z + 0.3); b.lid.material.opacity = 0.8 / (1 + h2 * 0.12); } else b.lid.visible = false;
     b.cup.material.opacity = 0.85;
-    const p = this.pouch.group;
+    const p = this.pack.group;
     const onShelf = p.position.distanceTo(POS.shelfTop) < 0.5;
-    b.pouch.visible = onShelf; b.pouch.position.set(POS.shelfTop.x, POS.shelfTop.y + 0.05, POS.shelfTop.z + 1);
+    b.pouch.visible = onShelf; b.pouch.position.set(POS.shelfTop.x, POS.shelfTop.y + 0.05, POS.shelfTop.z + 1); b.pouch.scale.set(this.pack.W * 1.5, 9, 1);
     void p;
   }
 
@@ -539,8 +579,8 @@ export class TeaGame {
     const pr = this.els.prompt; if (!pr) return;
     const d = this.state.done, show = !this.state.busy && d < 5 && this.visible;
     let w;
-    if (d === 0) w = this.pouch.group.position.clone().add(new V3(0, 8, 0));
-    else if (d === 1) w = POS.tap.clone().add(new V3(4.5, 9.5, 2.5));
+    if (d === 0) w = this.pack.group.position.clone().add(new V3(0, 8, 0));
+    else if (d === 1) w = POS.tap.clone().add(new V3(4.5, 11, 2.5));
     else if (d === 2) w = this.pot.group.position.clone().add(new V3(0, 8, 0));
     else if (d === 3) w = POS.stove.clone().add(new V3(0, 4.2, 13.8));
     else w = this.pot.group.position.clone().add(new V3(0, 8, 0));

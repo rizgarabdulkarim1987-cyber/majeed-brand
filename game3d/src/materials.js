@@ -50,13 +50,14 @@ export function glassFront(shared, opts = {}) {
         bg.r = texture2D(tFrame, clamp(uv+off*0.94,0.002,0.998)).r;
         bg.g = texture2D(tFrame, clamp(uv+off,0.002,0.998)).g;
         bg.b = texture2D(tFrame, clamp(uv+off*1.06,0.002,0.998)).b;
-        float F = 0.045+0.955*pow(edge,4.5);
+        float F = 0.05+0.95*pow(edge,4.0);
         vec3 R = reflect(-V,N);
         vec3 env = textureCube(tEnv, R).rgb;
-        vec3 absorb = mix(vec3(1.), uTint, pow(edge,1.4)*0.95);
-        vec3 col = bg*absorb*(1.-uEdgeDark*pow(edge,2.2)) * (1.-F*0.55);
+        vec3 absorb = mix(vec3(1.), uTint, pow(edge,1.3)*0.95);
+        vec3 col = bg*absorb*(1.-uEdgeDark*pow(edge,2.0)) * (1.-F*0.55);
         col += acesDisplay(env*F*uEnvI);
-        col += vec3(0.82,1.0,0.92)*pow(edge,7.)*0.22;
+        col += vec3(0.88,1.0,0.95)*smoothstep(0.86,0.985,edge)*0.5;      // the bright thick rim of the glass
+        col += vec3(0.82,1.0,0.92)*pow(edge,7.)*0.2;
         gl_FragColor = vec4(col,1.);
       }`,
     side: THREE.FrontSide,

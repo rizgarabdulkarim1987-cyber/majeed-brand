@@ -71,7 +71,8 @@ export class Grains {
   constructor(parent, vessel, nLeaf = 130, nPod = 16, envMap = null) {
     this.vessel = vessel; this.r = rng(5);
     this.nLeaf = nLeaf; this.nPod = nPod; this.n = nLeaf + nPod;
-    const leafGeo = new THREE.IcosahedronGeometry(0.5, 1);
+    const leafGeo = new THREE.PlaneGeometry(1, 1, 6, 2);      // a curled strip, like a rolled tea leaf
+    { const lp = leafGeo.attributes.position; for (let i = 0; i < lp.count; i++) { const x = lp.getX(i), y = lp.getY(i); lp.setZ(i, 0.28 * Math.cos(x * Math.PI) * (0.4 + y) + 0.12 * Math.sin(y * 9)); } leafGeo.computeVertexNormals(); }
     const podGeo = new THREE.SphereGeometry(0.5, 12, 9);
     const pp = podGeo.attributes.position;
     for (let i = 0; i < pp.count; i++) {      // ridged, pointed pod
@@ -81,7 +82,7 @@ export class Grains {
     }
     podGeo.computeVertexNormals();
     // black tea and green cardamom: the colour lives in the material, so it can never come out white
-    const lm = new THREE.MeshStandardMaterial({ color: 0x0e0b09, roughness: 0.88, metalness: 0, envMap, envMapIntensity: 0.1 });
+    const lm = new THREE.MeshStandardMaterial({ color: 0x0e0b09, roughness: 0.8, metalness: 0, envMap, envMapIntensity: 0.12, side: THREE.DoubleSide });
     const pm = new THREE.MeshStandardMaterial({ color: 0x2a6618, roughness: 0.62, metalness: 0, envMap, envMapIntensity: 0.14 });
     this.leaves = new THREE.InstancedMesh(leafGeo, lm, nLeaf);
     this.pods = new THREE.InstancedMesh(podGeo, pm, nPod);
@@ -95,7 +96,7 @@ export class Grains {
     const c = new THREE.Color();
     for (let i = 0; i < this.n; i++) {
       const leaf = i < nLeaf;
-      if (leaf) { this.sc.set([0.8 + r() * 0.9, 0.2 + r() * 0.14, 0.32 + r() * 0.26], i * 3); }
+      if (leaf) { this.sc.set([0.9 + r() * 1.0, 0.34 + r() * 0.28, 1], i * 3); }
       else { const s = 1.15 + r() * 0.4; this.sc.set([s * 1.0, s * 0.9, s * 0.9], i * 3); }
       this.rot.set([r() * 6.28, r() * 6.28, r() * 6.28], i * 3);
       this.spin.set([(r() - 0.5) * 9, (r() - 0.5) * 9, (r() - 0.5) * 9], i * 3);
