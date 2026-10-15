@@ -1,0 +1,7 @@
+# The whole site is one HTML file that changes whenever the site is updated.
+# Ask the server on every visit whether there is a newer copy (a 304 answer costs almost nothing), so phones and browsers never keep showing an old version.
+<IfModule mod_headers.c>
+  <FilesMatch "\.html$">
+    Header set Cache-Control "no-cache, must-revalidate"
+  </FilesMatch>
+</IfModule>

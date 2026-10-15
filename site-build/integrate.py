@@ -11,6 +11,8 @@ import base64, json, os, re, sys
 here = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, here)
 from facts import facts_html, FACTS_CSS
+from hero_mobile import add_mobile_actions, HERO_MOBILE_CSS
+from mobile_fixes import MOBILE_ALL_CSS
 
 orig_path, bundle_path, out_path = sys.argv[1:4]
 s = open(orig_path, encoding='utf-8').read()
@@ -275,6 +277,23 @@ WIRING = r'''  /* ---- tea game: a real WebGL 3D kitchen, five steps from leaf t
     } else { fg.setAttribute('data-run', ''); fnums.forEach(function (el) { el.textContent = fmt(+el.getAttribute('data-to')); }); }
   }
 
+  /* ---- the round Majeed button at the bottom right of a phone: opens / closes its little menu of links ---- */
+  var mta = $('.mobile-tea-actions'), mtg = $('.mobile-tea-toggle'), mtm = $('#tea-action-menu');
+  if (mta && mtg) {
+    var mtOpenLabel = mtg.getAttribute('aria-label');
+    var mtCloseLabel = L('Close Majeed actions', 'إغلاق روابط مجيد', 'داخستنی لینکەکانی مەجید');
+    var setMenu = function (open) {
+      mta.classList.toggle('expanded', open);
+      mtg.setAttribute('aria-expanded', String(open));
+      mtg.setAttribute('aria-label', open ? mtCloseLabel : mtOpenLabel);
+      if (mtm) { if (open) mtm.removeAttribute('inert'); else mtm.setAttribute('inert', ''); }
+    };
+    mtg.addEventListener('click', function (e) { e.stopPropagation(); setMenu(!mta.classList.contains('expanded')); });
+    document.addEventListener('pointerdown', function (e) { if (mta.classList.contains('expanded') && !mta.contains(e.target)) setMenu(false); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && mta.classList.contains('expanded')) { setMenu(false); mtg.focus(); } });
+    mta.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('a[href]')) setMenu(false); });
+  }
+
   /* ---- language menu: closes on an outside click or Escape ---- */
   $$('.lang-switch details', root).forEach(function (d) {
     document.addEventListener('click', function (e) { if (d.open && !d.contains(e.target)) d.open = false; });
@@ -323,10 +342,11 @@ for key in ('index.html', 'ar.html'):
     mj = h.index('window.__MJ=') + len('window.__MJ=')
     n_products = len(json.JSONDecoder().raw_decode(h, mj)[0]['products'])
     h = h[:i0] + facts_html(lang, n_products) + h[i0:]
+    h = add_mobile_actions(h)
 
     # ---- CSS
     last_style = h.rindex('</style>')
-    h = h[:last_style] + CSS_ADD + FACTS_CSS + h[last_style:]
+    h = h[:last_style] + CSS_ADD + FACTS_CSS + HERO_MOBILE_CSS + h[last_style:]
     old_heat = 'at 82% 76%'
     assert old_heat in h
     h = h.replace(old_heat, 'at 60% 58%')
@@ -515,7 +535,7 @@ CSS_LANG = (
 for key in list(pages):
     h = add_switcher(key, pages[key])
     ls = h.rindex('</style>')
-    pages[key] = h[:ls] + CSS_LANG + h[ls:]
+    pages[key] = h[:ls] + CSS_LANG + MOBILE_ALL_CSS + h[ls:]
 
 # ---- 5) the fonts themselves. Arabic Typesetting and NRT are used where they are installed (local()), and are embedded from
 # ----    fonts/ if the font files are there (they are licensed/third-party fonts, so they are not downloaded or bundled here).

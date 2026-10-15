@@ -19,6 +19,10 @@ python3 integrate.py original.html ../game3d/dist/majeed3d.min.js ../index.html
 The Golden Majeed 600 g tin is added by `add_golden()` in `integrate.py` (data in `GOLD`; its photo is `assets/revised-golden-600.webp`; its Kurdish wording is `KU_GOLDEN` in `ku_strings.py`).
 It appears in the product slider, the product index, as its own product page in English, Arabic and Kurdish, and in the tea game's product picker (`../game3d`).
 
+## Phone layout
+`hero_mobile.py` (home-page hero on phones: buttons under the headline, a modest centred product picture) and `mobile_fixes.py` (no 3D depth layer on touch screens; no text or pictures laid over each other on the other sections) are appended to every page by `integrate.py`.
+The round Majeed button at the bottom right of a phone is wired in `WIRING` in `integrate.py`. `.htaccess` makes browsers check for a newer page on every visit.
+
 ## Fonts
 - **Arabic headlines: Arabic Typesetting.** **Kurdish: NRT.** Both are used automatically on any visitor's device that has them installed.
   To make every visitor see them, embed the font files: put `ArabicTypesetting.ttf`, `NRT-Reg.ttf` (and `NRT-Bd.ttf`) in `site-build/fonts/`,
