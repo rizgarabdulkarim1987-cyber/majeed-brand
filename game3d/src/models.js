@@ -193,29 +193,29 @@ export function buildPot(ctx) {
 /* ---------------- tulip glass + saucer ---------------- */
 export function buildCup(ctx) {
   const g = new THREE.Group(); g.name = 'cup';
-  const outer = smooth([[0, 0], [1.9, 0], [2.25, 0.25], [2.35, 1.0], [2.2, 2.4], [1.85, 3.9], [1.72, 5.0], [1.86, 6.5], [2.3, 8.1], [2.65, 9.3], [2.72, 9.55]], 80);
-  const inner = smooth([[0, 0.85], [1.6, 0.85], [2.1, 1.1], [2.15, 2.4], [1.75, 3.9], [1.6, 5.0], [1.73, 6.5], [2.18, 8.1], [2.52, 9.3], [2.58, 9.6]], 80);
+  const outer = smooth([[0, 0], [2.3, 0], [2.85, 0.2], [3.12, 0.7], [3.18, 1.5], [2.98, 2.7], [2.55, 4.0], [2.35, 5.0], [2.55, 6.3], [3.12, 7.7], [3.58, 8.9], [3.7, 9.55]], 90);
+  const inner = smooth([[0, 0.9], [2.1, 0.9], [2.68, 1.2], [2.95, 1.7], [2.8, 2.7], [2.4, 4.0], [2.2, 5.0], [2.4, 6.3], [2.97, 7.7], [3.43, 8.9], [3.55, 9.6]], 90);
   const vessel = makeVessel(inner), outerR = makeVessel(outer).R;
   addGlass(g, lathe(outer, 72), ctx, { front: ctx.cupFrontMat });
-  const rim = new THREE.Mesh(new THREE.TorusGeometry(2.65, 0.07, 8, 48), ctx.cupFrontMat); rim.rotation.x = Math.PI / 2; rim.position.y = 9.5; rim.layers.set(1); rim.renderOrder = 5; g.add(rim);
+  const rim = new THREE.Mesh(new THREE.TorusGeometry(3.64, 0.08, 8, 56), ctx.cupFrontMat); rim.rotation.x = Math.PI / 2; rim.position.y = 9.5; rim.layers.set(1); rim.renderOrder = 5; g.add(rim);
   const u = makeLiquidUniforms(ctx.shared);
   const lm = liquidMaterials(u);
-  const liqGeo = lathe(inner, 48);
+  const liqGeo = lathe(inner, 64);
   const liq = [];
   const b = new THREE.Mesh(liqGeo, lm.back); b.renderOrder = 3; b.layers.set(0);
   const f = new THREE.Mesh(liqGeo, lm.front); f.renderOrder = 4; f.layers.set(0);
   g.add(b, f); liq.push(b, f);
-  const label = new THREE.Mesh(curvedPatch(outerR, 4.9, 2.1, 3.1, 0.05, 24, 6), ctx.labelMat);
+  const label = new THREE.Mesh(curvedPatch(outerR, 4.95, 2.6, 4.5, 0.05, 28, 6), ctx.labelMat);
   label.layers.set(1); label.renderOrder = 10; g.add(label);
 
   const saucer = new THREE.Group(); saucer.name = 'saucer';
-  const sp = smooth([[0, 0.08], [3.0, 0.08], [5.5, 0.6], [5.95, 1.2], [5.95, 1.36], [5.2, 0.96], [3.1, 0.62], [2.8, 0.66], [2.4, 0.56], [0, 0.56]], 80);
+  const sp = smooth([[0, 0.08], [3.6, 0.08], [6.3, 0.6], [6.85, 1.2], [6.85, 1.36], [6.0, 0.96], [3.9, 0.62], [3.6, 0.66], [3.2, 0.56], [0, 0.56]], 90);
   addGlass(saucer, new THREE.LatheGeometry(V2(sp), 72), ctx, { front: ctx.saucerFrontMat });
   // a small steel teaspoon resting on the saucer
   const spoon = new THREE.Group(); spoon.name = 'spoon';
   const stem = new THREE.Mesh(taperedTube(new THREE.LineCurve3(new THREE.Vector3(-4.1, 0, 0), new THREE.Vector3(2.6, 0, 0)), 0.17, 0.3, 12, 8), ctx.mats.steel); spoon.add(stem);
   const bowl = new THREE.Mesh(new THREE.SphereGeometry(1, 24, 14), ctx.mats.steel); bowl.scale.set(1.5, 0.32, 1.0); bowl.position.set(3.7, 0.0, 0); spoon.add(bowl);
-  spoon.position.set(-0.4, 1.02, 3.9); spoon.rotation.set(0, 0.2, 0.04);
+  spoon.position.set(-0.6, 1.02, 4.9); spoon.rotation.set(0, 0.2, 0.04);
   saucer.add(spoon);
   return { group: g, saucer, vessel, liquidUniforms: u, liquidMeshes: liq, baseY: 0.56 };
 }

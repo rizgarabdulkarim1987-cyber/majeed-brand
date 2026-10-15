@@ -18,7 +18,8 @@ const POS = {
   potRest: new V3(-28, 0, 4),
   potTap: new V3(-19, 0, -8.5),
   stove: new V3(19, 0, -8),
-  glass: new V3(41.5, 0, 8),
+  glass: new V3(43, 0, 9),
+  capPark: new V3(-9, 0, 13),                    // where a jar's cap is set down (on the counter, like the teapot lid)
   shelfTop: new V3(-46, 29.5, -15),              // where the jar / pouch stands (the shelf itself is centred at x=-41)
   lidPark: new V3(-37, 0, 17),
   tap: new V3(-1, 0, -14),
@@ -138,7 +139,7 @@ export class TeaGame {
       const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: blobTex, transparent: true, depthWrite: false, opacity: o }));
       m.rotation.x = -Math.PI / 2; m.scale.set(w, d, 1); m.renderOrder = 0.5; scene.add(m); return m;
     };
-    this.blobs = { pot: mkBlob(25, 20), cup: mkBlob(20, 17), lid: mkBlob(20, 18, 0.8), pouch: mkBlob(14, 8, 0.7), stove: mkBlob(42, 38, 0.8) };
+    this.blobs = { pot: mkBlob(25, 20), cup: mkBlob(20, 17), lid: mkBlob(20, 18, 0.8), pouch: mkBlob(14, 8, 0.7), cap: mkBlob(14, 11, 0.8), stove: mkBlob(42, 38, 0.8) };
     this.blobs.stove.position.set(POS.stove.x, 0.03, POS.stove.z + 1);
     this.blobs.cup.position.set(POS.glass.x + 1, 0.03, POS.glass.z + 0.5);
 
@@ -232,11 +233,12 @@ export class TeaGame {
     if (pack.cap) {
       this.scene.attach(pack.cap);
       capHome = pack.cap.position.clone();
-      capSide = new V3(sh.x + pack.W + 0.8, sh.y + 0.05, sh.z + 0.6);
+      capSide = new V3(POS.capPark.x, 0.05, POS.capPark.z);
       this.sfx.click();
-      await this.tw.run(0.55, (k) => { pack.cap.position.copy(capHome); pack.cap.position.y += Math.sin(Math.PI * k * 0.5) * 3.6; pack.cap.rotation.z = Math.sin(k * Math.PI) * 0.18; }, easeIO);
+      await this.tw.run(0.5, (k) => { pack.cap.position.copy(capHome); pack.cap.position.y += Math.sin(Math.PI * k * 0.5) * 3.6; pack.cap.rotation.z = Math.sin(k * Math.PI) * 0.18; }, easeIO);
       const c1 = pack.cap.position.clone();
-      await this.tw.run(0.6, (k) => { pack.cap.position.lerpVectors(c1, capSide, k); pack.cap.position.y += Math.sin(Math.PI * k) * 2.2; pack.cap.rotation.z = lerp(0.0, -0.08, k); }, easeIO);
+      await this.tw.run(1.0, (k) => { pack.cap.position.lerpVectors(c1, capSide, easeIO(k)); pack.cap.position.y += Math.sin(Math.PI * k) * 6; pack.cap.rotation.z = Math.sin(k * Math.PI * 2) * 0.2; }, linear);
+      pack.cap.rotation.z = 0;
     }
     // the pack comes down from the shelf and tilts over the open pot
     const mouthTarget = new V3(pot.group.position.x - 0.6, pot.group.position.y + pot.rimY * WARE + 5, pot.group.position.z);
@@ -263,7 +265,7 @@ export class TeaGame {
     // ...and the cap goes back on
     if (pack.cap) {
       const c0 = pack.cap.position.clone();
-      await this.tw.run(0.7, (k) => { pack.cap.position.lerpVectors(c0, capHome, k); pack.cap.position.y += Math.sin(Math.PI * k) * 3.2; pack.cap.rotation.z = lerp(-0.08, 0, k); }, easeIO);
+      await this.tw.run(1.0, (k) => { pack.cap.position.lerpVectors(c0, capHome, easeIO(k)); pack.cap.position.y += Math.sin(Math.PI * k) * 6; pack.cap.rotation.z = Math.sin(k * Math.PI * 2) * 0.2; }, linear);
       g.add(pack.cap); pack.cap.position.set(0, pack.H - pack.capH, 0); pack.cap.rotation.set(0, 0, 0);
     }
     this.phase('leaves-done');
@@ -450,7 +452,7 @@ export class TeaGame {
     this.potExcess = fr > 0.0008 ? level - lipW.y : -5;
     let Q = 0;
     if (this.state.phase === 'pour' && this.potExcess > 0) {
-      Q = Math.min(48 * Math.pow(this.potExcess, 1.5), 60);
+      Q = Math.min(72 * Math.pow(this.potExcess, 1.5), 90);
       const dv = Math.min(Q * dt, S.potVol - total * 0.3);
       if (dv > 0) { S.potVol -= dv; S.cupVol += dv; } else Q = 0;
     }
@@ -503,7 +505,7 @@ export class TeaGame {
       const y0 = lipW.y, endY = this.cupLevelWorld > -500 ? this.cupLevelWorld : cup.group.position.y + cup.vessel.yMin * WARE;
       const Tf = (vy + Math.sqrt(vy * vy + 2 * G_STREAM * Math.max(0.1, y0 - endY))) / G_STREAM;
       for (let i = 0; i <= 30; i++) { const t = (i / 30) * Tf; this.pts[i].set(lipW.x + vx * t, y0 + vy * t - 0.5 * G_STREAM * t * t, lipW.z); }
-      const r0 = 0.12 + 0.34 * Math.min(1, Q / 26);
+      const r0 = 0.12 + 0.36 * Math.min(1, Q / 34);
       this.potStream.set(this.pts, r0, r0 * 0.72); this.potStream.mesh.visible = true;
       this.teaMat.uniforms.uFlow.value = this.time; this.teaMat.uniforms.uAlpha.value = 0.55 + 0.35 * Math.min(1, Q / 20);
       this.travelVal = lerp(this.travelVal ?? vx * Tf, vx * Tf, 0.3);
@@ -552,6 +554,8 @@ export class TeaGame {
     const L = this.pot.lid;
     if (L.parent !== g) { b.lid.visible = true; const h2 = Math.max(0, L.position.y + (this.pot.rimY - 0.1) * WARE); b.lid.position.set(L.position.x, 0.04, L.position.z + 0.3); b.lid.material.opacity = 0.8 / (1 + h2 * 0.12); } else b.lid.visible = false;
     b.cup.material.opacity = 0.85;
+    const cp = this.pack.cap;
+    if (cp && cp.parent !== this.pack.group) { b.cap.visible = true; const hh = Math.max(0, cp.position.y); b.cap.position.set(cp.position.x, 0.04, cp.position.z + 0.3); b.cap.scale.set(this.pack.W * 1.3, this.pack.W * 1.05, 1); b.cap.material.opacity = 0.8 / (1 + hh * 0.15); } else b.cap.visible = false;
     const p = this.pack.group;
     const onShelf = p.position.distanceTo(POS.shelfTop) < 0.5;
     b.pouch.visible = onShelf; b.pouch.position.set(POS.shelfTop.x, POS.shelfTop.y + 0.05, POS.shelfTop.z + 1); b.pouch.scale.set(this.pack.W * 1.5, 9, 1);
