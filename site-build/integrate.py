@@ -385,6 +385,9 @@ CSS_LANG = (
     '.lang-menu a[aria-current=true]{color:var(--red);font-weight:600}'
     '.lang-menu a[aria-current=true]::after{content:"";width:6px;height:11px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg) translateY(-2px)}'
     '@media (max-width:800px){.lang-switch{font-size:11px}}'
+    # the tea in every CSS-drawn glass (hero, button icon, footer, taste section, contact, about...) is near-black, like the tea in the game
+    '.glass-liquid{background:linear-gradient(90deg,#150703f4,#220d06f6 20%,#2e1208 46%,#4a1e0b 76%,#1a0804f4);box-shadow:inset 3px 0 8px #ff9a5224,inset 0 5px 2px #060201,inset 0 -5px 6px #8f4a1c2e}'
+    '.footer-brand .tea-glass{opacity:.92}'
     # fonts: Arabic headlines in Arabic Typesetting (Amiri where it is not installed); Kurdish in NRT (Noto Sans Arabic where it is not installed)
     ":root{--ar-head:'Arabic Typesetting','Amiri',Manrope,'Noto Sans Arabic',sans-serif;--ku-font:'NRT','Noto Sans Arabic','DM Sans',sans-serif;--ku-head:'NRT','Noto Sans Arabic',Manrope,sans-serif}"
     '.rtl:not(.ku) h1,.rtl:not(.ku) h2,.rtl:not(.ku) h3,.rtl:not(.ku) .hero-copy h1,.rtl:not(.ku) .footer-brand h2,.rtl:not(.ku) .classic,.rtl:not(.ku) .modern,.rtl:not(.ku) .moment-word,.rtl:not(.ku) .moment-scene-word,.rtl:not(.ku) .showroom-word,'
