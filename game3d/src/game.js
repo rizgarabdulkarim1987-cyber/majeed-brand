@@ -15,14 +15,14 @@ const G_STREAM = 760;         // gravity used for the visible stream (cm/s^2)
 
 const WARE = 1.22;           // teapot, glass and saucer are built life-size and shown a little larger
 const POS = {
-  potRest: new V3(-29, 0, 4),
-  potTap: new V3(-15, 0, -8.5),
-  stove: new V3(21, 0, -8),
-  glass: new V3(44.5, 0, 8),
-  shelfTop: new V3(-44, 29.5, -15),
-  lidPark: new V3(-39, 0, 13),
-  tap: new V3(3, 0, -14),
-  lamp: new V3(9, 44, -12),
+  potRest: new V3(-28, 0, 4),
+  potTap: new V3(-19, 0, -8.5),
+  stove: new V3(19, 0, -8),
+  glass: new V3(41.5, 0, 8),
+  shelfTop: new V3(-41, 29.5, -15),
+  lidPark: new V3(-37, 0, 17),
+  tap: new V3(-1, 0, -14),
+  lamp: new V3(8, 44, -12),
 };
 
 export class TeaGame {
@@ -119,12 +119,12 @@ export class TeaGame {
     this.cup.group.position.set(POS.glass.x, this.cup.baseY * WARE, POS.glass.z); this.cup.group.scale.setScalar(WARE); scene.add(this.cup.group);
 
     // grains and bubbles live in pot space
-    this.grains = new Grains(this.pot.group, this.pot.vessel, 210, 22);
+    this.grains = new Grains(this.pot.group, this.pot.vessel, 210, 22, this.envMap);
     this.bubbles = new Bubbles(this.pot.group, this.pot.vessel, 70);
 
     // streams
     this.waterMat = streamMaterial(this.shared, 0xcfe8f0); this.waterMat.uniforms.uAlpha.value = 0.55;
-    this.teaMat = streamMaterial(this.shared, 0xc0600c);
+    this.teaMat = streamMaterial(this.shared, 0x45180a);
     this.tapStream = new Stream(this.waterMat); scene.add(this.tapStream.mesh);
     this.potStream = new Stream(this.teaMat); scene.add(this.potStream.mesh);
     this.pts = Array.from({ length: 31 }, () => new V3());
@@ -167,7 +167,7 @@ export class TeaGame {
     if (this.manual) this.render();
   }
   fitCamera() {
-    const asp = this.camera.aspect, half = asp < 1.2 ? 41 : 57;     // narrow screens zoom in and follow the action
+    const asp = this.camera.aspect, half = asp < 1.2 ? 41 : 61;     // narrow screens zoom in and follow the action
     const dist = Math.max(112, half / (Math.tan((FOV * Math.PI) / 360) * asp));
     this.camBase = new V3(2, 25 + (dist - 118) * 0.2, dist);
     this.camTarget = new V3(2, 12.5 + (dist - 118) * 0.1, 0);
@@ -372,14 +372,14 @@ export class TeaGame {
     const u = this.pot.liquidUniforms;
     const tea = clamp(b, 0, 1);
     // clear water -> brewed tea
-    u.uCore.value.setRGB(lerp(0.26, 0.26, tea), lerp(0.55, 0.045, tea), lerp(0.64, 0.005, tea));
-    u.uEdge.value.setRGB(lerp(0.42, 0.74, tea), lerp(0.80, 0.27, tea), lerp(0.90, 0.035, tea));
-    u.uSurf.value.setRGB(lerp(0.50, 0.55, tea), lerp(0.75, 0.20, tea), lerp(0.82, 0.035, tea));
-    u.uOpacity.value = lerp(0.34, 0.86, sstep(0, 0.6, tea));
+    u.uCore.value.setRGB(lerp(0.26, 0.032, tea), lerp(0.55, 0.008, tea), lerp(0.64, 0.003, tea));
+    u.uEdge.value.setRGB(lerp(0.42, 0.34, tea), lerp(0.80, 0.08, tea), lerp(0.90, 0.015, tea));
+    u.uSurf.value.setRGB(lerp(0.50, 0.16, tea), lerp(0.75, 0.05, tea), lerp(0.82, 0.012, tea));
+    u.uOpacity.value = lerp(0.34, 0.97, sstep(0, 0.6, tea));
     u.uBoil.value = Math.max(this.sim.boil, this.sim.flow * 0.35);
     const c = this.cup.liquidUniforms;
-    c.uCore.value.setRGB(0.27, 0.05, 0.006); c.uEdge.value.setRGB(0.78, 0.29, 0.04); c.uSurf.value.setRGB(0.6, 0.22, 0.04);
-    c.uOpacity.value = 0.95; c.uBoil.value = this.cupRipple || 0;
+    c.uCore.value.setRGB(0.032, 0.008, 0.003); c.uEdge.value.setRGB(0.36, 0.09, 0.016); c.uSurf.value.setRGB(0.16, 0.05, 0.012);
+    c.uOpacity.value = 0.97; c.uBoil.value = this.cupRipple || 0;
   }
 
   tick(dt) {
@@ -523,13 +523,13 @@ export class TeaGame {
     let fx = 2;
     if (this.camera.aspect < 1.2) {
       const ph = this.state.phase;
-      fx = ph === 'idle' || ph === 'leaves' || ph === 'leaves-done' ? -20 : ph === 'water' || ph === 'water-done' ? -9 : ph === 'cooker' || ph === 'cooker-done' || ph === 'boil' || ph === 'boil-done' ? 13 : 25;
+      fx = ph === 'idle' || ph === 'leaves' || ph === 'leaves-done' ? -20 : ph === 'water' || ph === 'water-done' ? -10 : ph === 'cooker' || ph === 'cooker-done' || ph === 'boil' || ph === 'boil-done' ? 12 : 24;
     }
     this.focusX = this.focusX === undefined ? fx : this.focusX + (fx - this.focusX) * Math.min(1, dt * 2.4);
     this.camBase.x = this.focusX; this.camTarget.x = this.focusX;
     this.ptr.sx += (this.ptr.x * k - this.ptr.sx) * Math.min(1, dt * 4); this.ptr.sy += (this.ptr.y * k - this.ptr.sy) * Math.min(1, dt * 4);
     const sway = this.motion ? Math.sin(this.time * 0.4) : 0;
-    this.camera.position.set(this.camBase.x + this.ptr.sx * 7 + sway * 1.2, this.camBase.y - this.ptr.sy * 3.5, this.camBase.z);
+    this.camera.position.set(this.camBase.x + this.ptr.sx * 3 + sway * 0.6, this.camBase.y - this.ptr.sy * 1.8, this.camBase.z);
     this.camera.lookAt(this.camTarget);
     this.camera.updateMatrixWorld();
     this.positionHint();

@@ -68,7 +68,7 @@ export class Flames {
 
 /* ---------------- tea leaves + cardamom ---------------- */
 export class Grains {
-  constructor(parent, vessel, nLeaf = 130, nPod = 16) {
+  constructor(parent, vessel, nLeaf = 130, nPod = 16, envMap = null) {
     this.vessel = vessel; this.r = rng(5);
     this.nLeaf = nLeaf; this.nPod = nPod; this.n = nLeaf + nPod;
     const leafGeo = new THREE.IcosahedronGeometry(0.5, 1);
@@ -80,8 +80,9 @@ export class Grains {
       pp.setXYZ(i, x * 2.5, y * ridge * taper, z * ridge * taper);
     }
     podGeo.computeVertexNormals();
-    const lm = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.62, metalness: 0 });
-    const pm = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5, metalness: 0 });
+    // black tea and green cardamom: the colour lives in the material, so it can never come out white
+    const lm = new THREE.MeshStandardMaterial({ color: 0x0e0b09, roughness: 0.88, metalness: 0, envMap, envMapIntensity: 0.1 });
+    const pm = new THREE.MeshStandardMaterial({ color: 0x2a6618, roughness: 0.62, metalness: 0, envMap, envMapIntensity: 0.14 });
     this.leaves = new THREE.InstancedMesh(leafGeo, lm, nLeaf);
     this.pods = new THREE.InstancedMesh(podGeo, pm, nPod);
     for (const m of [this.leaves, this.pods]) { m.frustumCulled = false; m.instanceMatrix.setUsage(THREE.DynamicDrawUsage); m.renderOrder = 2; parent.add(m); }
@@ -99,8 +100,8 @@ export class Grains {
       this.rot.set([r() * 6.28, r() * 6.28, r() * 6.28], i * 3);
       this.spin.set([(r() - 0.5) * 9, (r() - 0.5) * 9, (r() - 0.5) * 9], i * 3);
       this.ph[i] = r() * 6.28; this.sp[i] = 0.6 + r() * 1.3;
-      if (leaf) { const k = r(); c.setRGB(0.30 + k * 0.14, 0.19 + k * 0.1, 0.07 + k * 0.04); if (r() > 0.78) c.setRGB(0.24, 0.27, 0.09); this.leaves.setColorAt(i, c); }
-      else { const k = r(); c.setRGB(0.26 + k * 0.08, 0.42 + k * 0.1, 0.11 + k * 0.05); this.pods.setColorAt(i, c); }
+      if (leaf) { const k = 1.4 + r() * 3.6; c.setRGB(k, k * 0.82, k * 0.64); this.leaves.setColorAt(i, c); }
+      else { const k = 0.8 + r() * 0.6; c.setRGB(k * 0.95, k, k * 0.9); this.pods.setColorAt(i, c); }
     }
     this.nextLeaf = 0; this.nextPod = 0;
     this._m = new THREE.Matrix4(); this._q = new THREE.Quaternion(); this._e = new THREE.Euler(); this._s = new THREE.Vector3(); this._v = new THREE.Vector3();
