@@ -26,6 +26,9 @@ The round Majeed button at the bottom right of a phone is wired in `WIRING` in `
 ## Hero slide show
 `hero_slides.py`: the hero's product picture changes by itself every 5 seconds (order and timing at the top of `HERO_SLIDES_JS`; the 5 kg trade pack is left out). It pauses when off screen, hovered, or when motion is paused.
 
+## Tea game on a phone
+`game_mobile.py`: on phones (<= 700px) the game stage is edge to edge and tall, the status is one slim line over its bottom, the five steps are one row, and the round Majeed button steps aside while the game is on screen. The engine zooms in and follows the action on a tall stage (`fitCamera` / `updateCamera` in `game3d/src/game.js`).
+
 ## Fonts
 - **Arabic headlines: Arabic Typesetting.** **Kurdish: NRT.** Both are used automatically on any visitor's device that has them installed.
   To make every visitor see them, embed the font files: put `ArabicTypesetting.ttf`, `NRT-Reg.ttf` (and `NRT-Bd.ttf`) in `site-build/fonts/`,

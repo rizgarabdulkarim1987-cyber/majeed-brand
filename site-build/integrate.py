@@ -14,6 +14,7 @@ from facts import facts_html, FACTS_CSS
 from hero_mobile import add_mobile_actions, HERO_MOBILE_CSS
 from mobile_fixes import MOBILE_ALL_CSS
 from hero_slides import HERO_SLIDES_CSS, HERO_SLIDES_JS
+from game_mobile import GAME_MOBILE_CSS, GAME_MOBILE_JS
 
 orig_path, bundle_path, out_path = sys.argv[1:4]
 s = open(orig_path, encoding='utf-8').read()
@@ -304,6 +305,8 @@ WIRING = r'''  /* ---- tea game: a real WebGL 3D kitchen, five steps from leaf t
 '''
 
 WIRING = WIRING.replace('  /* ---- language menu: closes on an outside click or Escape ---- */', HERO_SLIDES_JS + '  /* ---- language menu: closes on an outside click or Escape ---- */', 1)
+WIRING = WIRING.replace('  /* ---- "Majeed in numbers"', GAME_MOBILE_JS + '  /* ---- "Majeed in numbers"', 1)
+assert 'steps aside while the game' in WIRING
 assert 'hero: the product picture' in WIRING
 
 changed = {}
@@ -350,7 +353,7 @@ for key in ('index.html', 'ar.html'):
 
     # ---- CSS
     last_style = h.rindex('</style>')
-    h = h[:last_style] + CSS_ADD + FACTS_CSS + HERO_MOBILE_CSS + HERO_SLIDES_CSS + h[last_style:]
+    h = h[:last_style] + CSS_ADD + FACTS_CSS + HERO_MOBILE_CSS + HERO_SLIDES_CSS + GAME_MOBILE_CSS + h[last_style:]
     old_heat = 'at 82% 76%'
     assert old_heat in h
     h = h.replace(old_heat, 'at 60% 58%')

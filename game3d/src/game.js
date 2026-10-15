@@ -168,10 +168,17 @@ export class TeaGame {
     if (this.manual) this.render();
   }
   fitCamera() {
-    const asp = this.camera.aspect, half = asp < 1.2 ? 41 : 61;     // narrow screens zoom in and follow the action
-    const dist = Math.max(112, half / (Math.tan((FOV * Math.PI) / 360) * asp));
-    this.camBase = new V3(2, 25 + (dist - 118) * 0.2, dist);
-    this.camTarget = new V3(2, 12.5 + (dist - 118) * 0.1, 0);
+    const asp = this.camera.aspect, t = Math.tan((FOV * Math.PI) / 360);
+    if (asp < 1.2) {
+      // a phone (a tall stage): zoom in on one part of the kitchen (about 66 units across) and follow the action (see updateCamera)
+      const dist = Math.max(33 / (t * asp), 110);
+      this.camBase = new V3(2, 28 + (dist - 110) * 0.2, dist);
+      this.camTarget = new V3(2, 16 + (dist - 110) * 0.1, 0);
+    } else {
+      const dist = Math.max(112, 61 / (t * asp));
+      this.camBase = new V3(2, 25 + (dist - 118) * 0.2, dist);
+      this.camTarget = new V3(2, 12.5 + (dist - 118) * 0.1, 0);
+    }
     this.camera.position.copy(this.camBase); this.camera.lookAt(this.camTarget);
     this.camera.updateProjectionMatrix();
   }
@@ -567,7 +574,7 @@ export class TeaGame {
     let fx = 2;
     if (this.camera.aspect < 1.2) {
       const ph = this.state.phase;
-      fx = ph === 'idle' || ph === 'leaves' || ph === 'leaves-done' ? -20 : ph === 'water' || ph === 'water-done' ? -10 : ph === 'cooker' || ph === 'cooker-done' || ph === 'boil' || ph === 'boil-done' ? 12 : 24;
+      fx = ph === 'idle' || ph === 'leaves' || ph === 'leaves-done' ? -20 : ph === 'water' || ph === 'water-done' ? -10 : ph === 'cooker' || ph === 'cooker-done' || ph === 'boil' || ph === 'boil-done' ? 20 : 26;
     }
     this.focusX = this.focusX === undefined ? fx : this.focusX + (fx - this.focusX) * Math.min(1, dt * 2.4);
     this.camBase.x = this.focusX; this.camTarget.x = this.focusX;
