@@ -33,6 +33,9 @@ The round Majeed button at the bottom right of a phone is wired in `WIRING` in `
 `desktop_fixes.py` (laptop / iPad sizes: round buttons keep clear of the text, no overlaps in the story card, tea moments, slider and market card, content starts below the fixed header, decoration never catches a click) and `safari_fixes.py` (iOS form-zoom, text-size-adjust, form-field appearance, tap highlight). The home hero on a tablet held upright uses the same stacked layout as a phone (`MQ_HERO` in `hero_mobile.py`).
 The tea in every CSS-drawn glass is `#4C1208` (`.glass-liquid` in `CSS_LANG`, `integrate.py`).
 
+## Buzzify credit
+`buzzify_credit.py`: the Buzzify mark (`assets/buzzify-mark.webp`, built from the wordmark in the buzzify-site project) and "Developed by Buzzify" at the bottom of every page's footer, linking to buzzify.me.
+
 ## Fonts
 - **Arabic headlines: Arabic Typesetting.** **Kurdish: NRT.** Both are used automatically on any visitor's device that has them installed.
   To make every visitor see them, embed the font files: put `ArabicTypesetting.ttf`, `NRT-Reg.ttf` (and `NRT-Bd.ttf`) in `site-build/fonts/`,

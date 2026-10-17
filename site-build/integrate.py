@@ -17,6 +17,7 @@ from hero_slides import HERO_SLIDES_CSS, HERO_SLIDES_JS
 from game_mobile import GAME_MOBILE_CSS, GAME_MOBILE_JS
 from desktop_fixes import DESKTOP_FIXES_CSS, DESKTOP_FIXES_JS
 from safari_fixes import SAFARI_CSS
+from buzzify_credit import add_credit, CREDIT_CSS, CREDIT_IMAGE
 
 orig_path, bundle_path, out_path = sys.argv[1:4]
 s = open(orig_path, encoding='utf-8').read()
@@ -545,7 +546,8 @@ CSS_LANG = (
 for key in list(pages):
     h = add_switcher(key, pages[key])
     ls = h.rindex('</style>')
-    pages[key] = h[:ls] + CSS_LANG + MOBILE_ALL_CSS + DESKTOP_FIXES_CSS + SAFARI_CSS + h[ls:]
+    pages[key] = h[:ls] + CSS_LANG + MOBILE_ALL_CSS + DESKTOP_FIXES_CSS + SAFARI_CSS + CREDIT_CSS + h[ls:]
+    pages[key] = add_credit(key, pages[key])
 
 # ---- 5) the fonts themselves. Arabic Typesetting and NRT are used where they are installed (local()), and are embedded from
 # ----    fonts/ if the font files are there (they are licensed/third-party fonts, so they are not downloaded or bundled here).
@@ -587,6 +589,8 @@ FONT_FACES = (
 # open-licence fallback for Arabic headlines where Arabic Typesetting is not installed: Amiri (SIL OFL), a classical Naskh
 _amiri = os.path.join(here, 'fonts-open', 'amiri-arabic-400-subset.woff2')
 FONT_FACES += face('Amiri', '400', [], None, raw=_amiri)
+with open(os.path.join(here, CREDIT_IMAGE), 'rb') as fh:
+    imgs[CREDIT_IMAGE] = 'data:image/webp;base64,' + base64.b64encode(fh.read()).decode()
 for slug in ('cardamom-pouch', 'cardamom-450g', 'cardamom-800g', 'cardamom-1kg', 'classic-450g', 'classic-800g', 'golden-600g'):
     with open(os.path.join(here, '..', 'game3d', 'products', slug + '.webp'), 'rb') as fh:
         imgs['assets/game/prod-%s.webp' % slug] = 'data:image/webp;base64,' + base64.b64encode(fh.read()).decode()
