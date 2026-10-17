@@ -15,6 +15,8 @@ from hero_mobile import add_mobile_actions, HERO_MOBILE_CSS
 from mobile_fixes import MOBILE_ALL_CSS
 from hero_slides import HERO_SLIDES_CSS, HERO_SLIDES_JS
 from game_mobile import GAME_MOBILE_CSS, GAME_MOBILE_JS
+from desktop_fixes import DESKTOP_FIXES_CSS, DESKTOP_FIXES_JS
+from safari_fixes import SAFARI_CSS
 
 orig_path, bundle_path, out_path = sys.argv[1:4]
 s = open(orig_path, encoding='utf-8').read()
@@ -304,7 +306,7 @@ WIRING = r'''  /* ---- tea game: a real WebGL 3D kitchen, five steps from leaf t
 
 '''
 
-WIRING = WIRING.replace('  /* ---- language menu: closes on an outside click or Escape ---- */', HERO_SLIDES_JS + '  /* ---- language menu: closes on an outside click or Escape ---- */', 1)
+WIRING = WIRING.replace('  /* ---- language menu: closes on an outside click or Escape ---- */', HERO_SLIDES_JS + DESKTOP_FIXES_JS + '  /* ---- language menu: closes on an outside click or Escape ---- */', 1)
 WIRING = WIRING.replace('  /* ---- "Majeed in numbers"', GAME_MOBILE_JS + '  /* ---- "Majeed in numbers"', 1)
 assert 'steps aside while the game' in WIRING
 assert 'hero: the product picture' in WIRING
@@ -506,17 +508,18 @@ def add_switcher(key, h):
     assert m, key
     items = ''.join('<a lang="%s" hreflang="%s" href="%s"%s>%s</a>' % (hl, hl, url_for(l, rest), ' aria-current="true"' if l == cur else '', name) for l, name, hl in LANGS)
     names = {l: (name, hl) for l, name, hl in LANGS}
-    html = ('<div class="lang-switch"><details><summary aria-label="%s">%s<span lang="%s">%s</span></summary><div class="lang-menu">%s</div></details></div>'
+    html = ('<div class="lang-switch"><details><summary aria-label="%s"><span class="ls-in">%s<span lang="%s">%s</span></span></summary><div class="lang-menu">%s</div></details></div>'
             % (LANG_LABEL[cur], m.group(1), names[cur][1], names[cur][0], items))
     return h[:m.start()] + html + h[m.end():]
 
 CSS_LANG = (
     # language menu
     '.lang-switch{position:relative;font-size:12px}'
-    '.lang-switch summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;padding:8px 4px;-webkit-user-select:none;user-select:none}'
+    '.lang-switch summary{list-style:none;cursor:pointer;display:block;padding:8px 4px;-webkit-user-select:none;user-select:none}'
+    '.lang-switch .ls-in{display:flex;align-items:center;gap:8px}'
     '.lang-switch summary::-webkit-details-marker{display:none}'
-    '.lang-switch summary::after{content:"";width:6px;height:6px;margin-top:-3px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg);transition:transform .2s}'
-    '.lang-switch details[open] summary::after{margin-top:3px;transform:rotate(225deg)}'
+    '.lang-switch .ls-in::after{content:"";width:6px;height:6px;margin-top:-3px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg);transition:transform .2s}'
+    '.lang-switch details[open] .ls-in::after{margin-top:3px;transform:rotate(225deg)}'
     '.lang-switch summary:focus-visible{outline:3px solid #2849aa;outline-offset:3px;border-radius:8px}'
     '.lang-menu{position:absolute;top:calc(100% + 8px);inset-inline-end:0;z-index:60;min-width:172px;padding:6px;display:grid;gap:2px;background:#faf6ee;border:1px solid #d8d3c7;border-radius:16px;box-shadow:0 14px 40px #29261833}'
     '.lang-menu a{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:10px 14px;border-radius:11px;font-size:15px;line-height:1.2;white-space:nowrap}'
@@ -524,8 +527,8 @@ CSS_LANG = (
     '.lang-menu a[aria-current=true]{color:var(--red);font-weight:600}'
     '.lang-menu a[aria-current=true]::after{content:"";width:6px;height:11px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg) translateY(-2px)}'
     '@media (max-width:800px){.lang-switch{font-size:11px}}'
-    # the tea in every CSS-drawn glass (hero, button icon, footer, taste section, contact, about...) is near-black, like the tea in the game
-    '.glass-liquid{background:linear-gradient(90deg,#150703f4,#220d06f6 20%,#2e1208 46%,#4a1e0b 76%,#1a0804f4);box-shadow:inset 3px 0 8px #ff9a5224,inset 0 5px 2px #060201,inset 0 -5px 6px #8f4a1c2e}'
+    # the tea in every CSS-drawn glass (hero, button icon, footer, taste section, contact, about...) is a deep tea red-brown, #4C1208
+    '.glass-liquid{background:linear-gradient(180deg,#ffffff10 0,#ffffff00 20%,#00000018 100%),linear-gradient(90deg,#3d0e06f2 0,#4c1208 26%,#4c1208 58%,#5a1709 82%,#3b0e06f2 100%);box-shadow:inset 3px 0 8px #ff9a5226,inset 0 5px 2px #36090400,inset 0 4px 3px #2f0a05,inset 0 -5px 6px #b7683a30}'
     '.footer-brand .tea-glass{opacity:.92}'
     # fonts: Arabic headlines in Arabic Typesetting (Amiri where it is not installed); Kurdish in NRT (Noto Sans Arabic where it is not installed)
     ":root{--ar-head:'Arabic Typesetting','Amiri',Manrope,'Noto Sans Arabic',sans-serif;--ku-font:'NRT','Noto Sans Arabic','DM Sans',sans-serif;--ku-head:'NRT','Noto Sans Arabic',Manrope,sans-serif}"
@@ -542,7 +545,7 @@ CSS_LANG = (
 for key in list(pages):
     h = add_switcher(key, pages[key])
     ls = h.rindex('</style>')
-    pages[key] = h[:ls] + CSS_LANG + MOBILE_ALL_CSS + h[ls:]
+    pages[key] = h[:ls] + CSS_LANG + MOBILE_ALL_CSS + DESKTOP_FIXES_CSS + SAFARI_CSS + h[ls:]
 
 # ---- 5) the fonts themselves. Arabic Typesetting and NRT are used where they are installed (local()), and are embedded from
 # ----    fonts/ if the font files are there (they are licensed/third-party fonts, so they are not downloaded or bundled here).

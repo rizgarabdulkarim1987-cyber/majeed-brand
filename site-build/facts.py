@@ -38,8 +38,8 @@ def _bars():
         out.append('<rect class="fx-bar" style="--i:%d;opacity:%.2f" x="%d" y="%d" width="14" height="%d" rx="3"/>' % (i, 0.28 + i * 0.1, x, 104 - h, h))
         pts.append('%d,%d' % (x + 7, 104 - h - 10))
     return ('<svg viewBox="0 0 200 120" aria-hidden="true" focusable="false"><line class="fx-base" x1="10" y1="104" x2="190" y2="104"/>' + ''.join(out)
-            + '<polyline class="fx-trend" pathLength="1" points="%s"/><circle class="fx-dot" cx="%s" cy="%s" r="4"/><circle class="fx-dot-ring" cx="%s" cy="%s" r="4"/></svg>'
-            % (' '.join(pts), pts[-1].split(',')[0], pts[-1].split(',')[1], pts[-1].split(',')[0], pts[-1].split(',')[1]))
+            + '<path class="fx-trend" pathLength="1" d="M%s"/><circle class="fx-dot" cx="%s" cy="%s" r="4"/><circle class="fx-dot-ring" cx="%s" cy="%s" r="4"/></svg>'
+            % (' L'.join(pts), pts[-1].split(',')[0], pts[-1].split(',')[1], pts[-1].split(',')[0], pts[-1].split(',')[1]))
 
 
 GLASS = 'M76 32 C80 44 86 50 86 58 C86 64 80 68 80 76 C80 86 90 92 100 92 C110 92 120 86 120 76 C120 68 114 64 114 58 C114 50 120 44 124 32 Z'
@@ -65,7 +65,7 @@ def _cups():
 def _network():
     nodes = [(32, 30), (58, 92), (22, 64), (150, 24), (178, 60), (146, 98), (100, 14), (104, 110), (68, 40), (132, 60)]
     cx, cy = 100, 62
-    lines = ''.join('<line class="fx-link" pathLength="1" style="--i:%d" x1="%d" y1="%d" x2="%d" y2="%d"/>' % (i, cx, cy, x, y) for i, (x, y) in enumerate(nodes))
+    lines = ''.join('<path class="fx-link" pathLength="1" style="--i:%d" d="M%d %d L%d %d"/>' % (i, cx, cy, x, y) for i, (x, y) in enumerate(nodes))
     dots = ''.join('<circle class="fx-node" style="--i:%d" cx="%d" cy="%d" r="3.4"/>' % (i, x, y) for i, (x, y) in enumerate(nodes))
     return ('<svg viewBox="0 0 200 120" aria-hidden="true" focusable="false"><ellipse class="fx-orbit" cx="100" cy="62" rx="52" ry="34"/><ellipse class="fx-orbit" cx="100" cy="62" rx="88" ry="54"/>'
             + lines + '<circle class="fx-ripple" style="--i:0" cx="100" cy="62" r="7"/><circle class="fx-ripple" style="--i:1" cx="100" cy="62" r="7"/><circle class="fx-ripple" style="--i:2" cx="100" cy="62" r="7"/>'

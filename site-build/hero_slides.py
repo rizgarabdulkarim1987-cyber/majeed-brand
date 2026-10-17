@@ -4,15 +4,17 @@ cross-fades between two layers, and draws a caption and one dot per product. It 
 the pointer rests on it, or motion is paused (the site's "Pause motion" button / the device's reduced-motion setting). The dots always work by hand.
 Used by integrate.py:  HERO_SLIDES_CSS (home pages) and HERO_SLIDES_JS (inside the shared page script)."""
 
+from hero_mobile import MQ_HERO
+
 HERO_SLIDES_CSS = (
     # two stacked layers instead of one picture; every product fits the same box
-    '.hero-product>.pack{position:absolute;inset:3% 0 17%;width:auto;height:auto;background-size:contain;background-position:center;'
+    '.hero-product>.pack{position:absolute;inset:3% 0 19%;width:auto;height:auto;background-size:contain;background-position:center;'
     'transition:opacity .9s ease,translate .9s cubic-bezier(.2,.8,.2,1),scale .9s cubic-bezier(.2,.8,.2,1)}'
     '.hero-product>.pack.is-next{opacity:0;translate:calc(var(--hs,1)*9%) 0;scale:.9}'
     '.hero-product>.pack.is-prev{opacity:0;translate:calc(var(--hs,1)*-9%) 0;scale:.9}'
     '.hero-product>.pack.no-tr{transition:none!important}'
     # caption and dots, under the picture
-    '.hero-slides{position:absolute;z-index:6;left:38%;width:38%;bottom:0;display:flex;flex-direction:column;align-items:center;gap:2px}'
+    '.hero-slides{position:absolute;z-index:6;left:38%;width:38%;bottom:-30px;display:flex;flex-direction:column;align-items:center;gap:2px}'
     '.rtl .hero-slides{left:29%}@media (max-width:1100px){.hero-slides{width:40%}}'
     '.hero-slide-name{margin:0;min-height:16px;color:#66685c;font:600 10px/1.5 DM Sans,Noto Sans Arabic,sans-serif;letter-spacing:.14em;text-transform:uppercase;text-align:center;animation:hero-name .5s ease both}'
     '.rtl .hero-slide-name{letter-spacing:0;font-size:12px;text-transform:none}'
@@ -29,7 +31,7 @@ HERO_SLIDES_CSS = (
     '@keyframes hero-fill{from{transform:scaleX(0)}to{transform:scaleX(1)}}@keyframes hero-name{from{opacity:0;transform:translateY(4px)}}'
     '.hero-dots button:focus-visible{outline-offset:2px}'
     # on a phone the caption and dots sit in the column, under the picture
-    '@media (max-width:800px){.hero-slides,.rtl .hero-slides{position:relative;left:auto;bottom:auto;width:auto;order:3;align-self:center;margin-top:22px}'
+    + MQ_HERO + '.hero-slides,.rtl .hero-slides{position:relative;left:auto;bottom:auto;width:auto;order:3;align-self:center;margin-top:22px}'
     '.hero-product>.pack{inset:2% 0 3%}}'
 )
 
