@@ -18,6 +18,7 @@ from game_mobile import GAME_MOBILE_CSS, GAME_MOBILE_JS
 from desktop_fixes import DESKTOP_FIXES_CSS, DESKTOP_FIXES_JS
 from safari_fixes import SAFARI_CSS
 from buzzify_credit import add_credit, CREDIT_CSS, CREDIT_IMAGE
+from about_tradition import add_tradition, ABOUT_CSS
 
 orig_path, bundle_path, out_path = sys.argv[1:4]
 s = open(orig_path, encoding='utf-8').read()
@@ -92,6 +93,7 @@ def add_golden(pages, imgs):
         pages[key] = h
 
 add_golden(pages, imgs)
+add_tradition(pages)
 
 # ---------------------------------------------------------------- text per language
 T = {
@@ -384,7 +386,7 @@ for key, h in list(pages.items()):
     pages[key] = h
 
 sys.path.insert(0, here)
-from ku_strings import KU_BY_INDEX, KU_SCRIPT, KU_GAME, KU_GOLDEN, KU_FACTS
+from ku_strings import KU_BY_INDEX, KU_SCRIPT, KU_GAME, KU_GOLDEN, KU_FACTS, KU_ABOUT
 
 # ======================================================================================================================
 # LANGUAGES: Kurdish (Sorani), the language menu, and the fonts
@@ -396,7 +398,7 @@ KU = dict(KU_BY_INDEX)
 for k, v in KU_SCRIPT.items():
     assert KU.get(k, v) == v, ('conflicting translation', k)
     KU[k] = v
-for k, v in list(KU_GOLDEN.items()) + list(KU_FACTS.items()):
+for k, v in list(KU_GOLDEN.items()) + list(KU_FACTS.items()) + list(KU_ABOUT.items()):
     assert KU.get(k, v) == v, ('conflicting translation', k)
     KU[k] = v
 _g = KU_GAME
@@ -423,7 +425,7 @@ def ku_of(ar_text):
 # ---- 1) the shared page script learns a third language
 DET_KU = [ku_of(x) for x in ('تأمل لون الشاي في ضوء النهار.', 'دع البخار الدافئ يملأ اللحظة.', 'تبدأ حكاية كل كوب بورقة.', 'لمسة الهيل في مجموعة الشاي المعطر.', 'اهتمام بالتفاصيل، من الورقة إلى الكوب.', 'حضر الشاي حسب تعليمات العبوة.')]
 SCRIPT_PATCHES = [
-    ("var REVEAL = '.section-heading, ", "var REVEAL = '.section-heading, .fact, "),
+    ("var REVEAL = '.section-heading, ", "var REVEAL = '.section-heading, .fact, .tradition-grid>div, .tradition-promise, "),
     ("var D = window.__MJ || {}, lang = D.lang || 'en', ar = lang === 'ar';",
      "var D = window.__MJ || {}, lang = D.lang || 'en', ar = lang === 'ar', ku = lang === 'ku', L = function (e, a, k) { return ku ? k : ar ? a : e; };"),
     ("document.documentElement.lang = lang;", "document.documentElement.lang = ku ? 'ckb' : lang;"),
@@ -546,7 +548,7 @@ CSS_LANG = (
 for key in list(pages):
     h = add_switcher(key, pages[key])
     ls = h.rindex('</style>')
-    pages[key] = h[:ls] + CSS_LANG + MOBILE_ALL_CSS + DESKTOP_FIXES_CSS + SAFARI_CSS + CREDIT_CSS + h[ls:]
+    pages[key] = h[:ls] + CSS_LANG + MOBILE_ALL_CSS + DESKTOP_FIXES_CSS + SAFARI_CSS + CREDIT_CSS + (ABOUT_CSS if page_id(key)[1] == 'about' else '') + h[ls:]
     pages[key] = add_credit(key, pages[key])
 
 # ---- 5) the fonts themselves. Arabic Typesetting and NRT are used where they are installed (local()), and are embedded from
