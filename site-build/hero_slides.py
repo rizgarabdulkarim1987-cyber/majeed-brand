@@ -1,10 +1,27 @@
 """The home-page hero: the product picture is a slide show that changes by itself every 5 seconds.
-The page carries only the first picture (the signature jar); the script adds the rest from the product list (window.__MJ, shown in the language of the page),
+The page carries only the first picture (the green Cardamom Tea jar, the real photo); the script adds the rest from the product list (window.__MJ, shown in the language of the page),
 cross-fades between two layers, and draws a caption and one dot per product. It stops when the picture is not on screen, the tab is hidden,
 the pointer rests on it, or motion is paused (the site's "Pause motion" button / the device's reduced-motion setting). The dots always work by hand.
 Used by integrate.py:  HERO_SLIDES_CSS (home pages) and HERO_SLIDES_JS (inside the shared page script)."""
 
+import re
 from hero_mobile import MQ_HERO
+
+FIRST_SLIDE_IMAGE = 'assets/revised-cardamom-800.webp'       # the real photo of the green Cardamom Tea jar (the same picture as in the product slider)
+FIRST_SLIDE_NAME = {'en': 'Cardamom Tea', 'ar': 'شاي بالهيل'}
+
+
+def set_first_slide(h, lang):
+    """The hero opens on the real green Cardamom Tea jar (the old signature-jar picture is gone from the hero)."""
+    pat = re.compile(r'(<div class="hero-product tiltable"><div role="img" aria-label=")[^"]*(" class="pack  " style="background-image:url\(&quot;)assets/majeed-signature-jar\.webp(&quot;\))')
+    h2, n = pat.subn(lambda m: m.group(1) + FIRST_SLIDE_NAME[lang] + m.group(2) + FIRST_SLIDE_IMAGE + m.group(3), h, count=1)
+    assert n == 1
+    # the small jar on the 'Explore our tea' buttons inside the hero is the same old picture: it shows the green jar too
+    a0 = h2.index('<section class="hero">'); b0 = h2.index('</section>', a0)
+    hero = h2[a0:b0].replace('assets/majeed-signature-jar.webp', FIRST_SLIDE_IMAGE)
+    assert 'majeed-signature-jar' not in hero
+    return h2[:a0] + hero + h2[b0:]
+
 
 HERO_SLIDES_CSS = (
     # two stacked layers instead of one picture; every product fits the same box
@@ -39,12 +56,14 @@ HERO_SLIDES_JS = r'''  /* ---- hero: the product picture is a slide show that ch
   if (window.__mjHero) { try { window.__mjHero.stop(); } catch (e) {} window.__mjHero = null; }
   var hpWrap = $('.hero-product'), hpFront = hpWrap && $('.pack', hpWrap), hpScene = $('.hero-scene');
   if (hpWrap && hpFront && hpScene && D.products) (function () {
-    var EVERY = 5000, ORDER = ['cardamom-1kg', 'golden-600g', 'classic-black-800g', 'cardamom-pouch', 'cardamom-800g', 'classic-black-450g', 'cardamom-450g'];
+    var EVERY = 5000, FIRST = 'cardamom-800g', ORDER = ['classic-black-800g', 'cardamom-pouch', 'cardamom-1kg', 'classic-black-450g', 'cardamom-450g'];
     var urlOf = function (css) { var m = /url\(["']?(.*?)["']?\)/.exec(css || ''); return m ? m[1] : ''; };
-    var slides = [{ src: urlOf(hpFront.style.backgroundImage), label: hpFront.getAttribute('aria-label') || '' }];
+    var named = function (p) { return p.name[lang] + (p.weight[lang] ? ' · ' + p.weight[lang] : ''); };
+    var p0 = D.products.filter(function (x) { return x.slug === FIRST; })[0];
+    var slides = [{ src: urlOf(hpFront.style.backgroundImage), label: p0 ? named(p0) : (hpFront.getAttribute('aria-label') || '') }];
     ORDER.forEach(function (slug) {
       var p = D.products.filter(function (x) { return x.slug === slug; })[0];
-      if (p) slides.push({ src: rel(p.image), label: p.name[lang] + (p.weight[lang] ? ' · ' + p.weight[lang] : '') });
+      if (p) slides.push({ src: rel(p.image), label: named(p) });
     });
     if (slides.length < 2 || !slides[0].src) return;
     hpWrap.style.setProperty('--hs', (ar || ku) ? '-1' : '1');

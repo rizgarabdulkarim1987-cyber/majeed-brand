@@ -13,7 +13,7 @@ sys.path.insert(0, here)
 from facts import facts_html, FACTS_CSS
 from hero_mobile import add_mobile_actions, HERO_MOBILE_CSS
 from mobile_fixes import MOBILE_ALL_CSS
-from hero_slides import HERO_SLIDES_CSS, HERO_SLIDES_JS
+from hero_slides import HERO_SLIDES_CSS, HERO_SLIDES_JS, set_first_slide
 from game_mobile import GAME_MOBILE_CSS, GAME_MOBILE_JS
 from desktop_fixes import DESKTOP_FIXES_CSS, DESKTOP_FIXES_JS
 from safari_fixes import SAFARI_CSS
@@ -355,6 +355,7 @@ for key in ('index.html', 'ar.html'):
     n_products = len(json.JSONDecoder().raw_decode(h, mj)[0]['products'])
     h = h[:i0] + facts_html(lang, n_products) + h[i0:]
     h = add_mobile_actions(h)
+    h = set_first_slide(h, lang)
 
     # ---- CSS
     last_style = h.rindex('</style>')

@@ -24,7 +24,7 @@ It appears in the product slider, the product index, as its own product page in 
 The round Majeed button at the bottom right of a phone is wired in `WIRING` in `integrate.py`. `.htaccess` makes browsers check for a newer page on every visit.
 
 ## Hero slide show
-`hero_slides.py`: the hero's product picture changes by itself every 5 seconds (order and timing at the top of `HERO_SLIDES_JS`; the 5 kg trade pack is left out). It pauses when off screen, hovered, or when motion is paused.
+`hero_slides.py`: the hero's product picture changes by itself every 5 seconds, starting with the real green Cardamom Tea jar (order and timing at the top of `HERO_SLIDES_JS`; the 5 kg trade pack and the Golden Majeed tin are left out of the hero). It pauses when off screen, hovered, or when motion is paused.
 
 ## Tea game on a phone
 `game_mobile.py`: on phones (<= 700px) the game stage is edge to edge and tall, the status is one slim line over its bottom, the five steps are one row, and the round Majeed button steps aside while the game is on screen. The engine zooms in and follows the action on a tall stage (`fitCamera` / `updateCamera` in `game3d/src/game.js`).
