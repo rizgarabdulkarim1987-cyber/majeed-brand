@@ -39,6 +39,9 @@ The tea in every CSS-drawn glass is `#4C1208` (`.glass-liquid` in `CSS_LANG`, `i
 ## About page text
 `about_tradition.py`: the "Majeed Tea — A Tradition in Every Cup" section of the About pages (English supplied by the owner; the Arabic is `TEXT['ar']` in that file and the Kurdish is `KU_ABOUT` in `ku_strings.py`).
 
+## Source files
+`source/golden-600g-original.jpg` is the supplied photo of the Golden Majeed tin and `source/cut_tin.py` cuts it out of its white background (how `assets/revised-golden-600.webp` was made).
+
 ## Fonts
 - **Arabic headlines: Arabic Typesetting.** **Kurdish: NRT.** Both are used automatically on any visitor's device that has them installed.
   To make every visitor see them, embed the font files: put `ArabicTypesetting.ttf`, `NRT-Reg.ttf` (and `NRT-Bd.ttf`) in `site-build/fonts/`,

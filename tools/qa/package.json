@@ -1,0 +1,6 @@
+{
+  "name": "majeed-qa",
+  "private": true,
+  "description": "Browser checks for the Majeed site (Playwright + Chromium)",
+  "dependencies": { "playwright": "^1.50.0" }
+}
