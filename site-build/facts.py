@@ -1,14 +1,13 @@
-"""The "Majeed in numbers" section: four facts with small motion graphics, placed second on the home page (after the hero and its ticker).
+"""The "Majeed in numbers" section: three facts with small motion graphics, placed second on the home page (straight after the hero).
 Used by integrate.py:  facts_html(lang, n_products) -> markup,  FACTS_CSS,  the script lives in integrate.py (WIRING).
-The figures are the ones the owner supplied: 10,000 tons sold, 250 million cups, 2,700 markets, one SKU count (= the products in the range)."""
+The figures are the ones the owner supplied: 250 million cups, 2,700 markets, one SKU count (= the products in the range). (The "10,000 tons sold" fact was taken out again at the owner's request.)"""
 
 TEXT = {
     'en': {
         'eyebrow': 'MAJEED IN NUMBERS',
         'h2': ('One cup at a time.', 'Millions of times over.'),
         'p': 'A few numbers behind the name on your shelf.',
-        'facts': [('10,000', '', 'Tons of tea sold', '10,000 tons of tea sold'),
-                  ('250', 'million', 'Cups of tea enjoyed', '250 million cups of tea enjoyed'),
+        'facts': [('250', 'million', 'Cups of tea enjoyed', '250 million cups of tea enjoyed'),
                   ('2,700', '', 'Markets where Majeed is present', 'Present in 2,700 markets'),
                   ('{n}', '', 'Products (SKUs)', '{n} products (SKUs)')],
     },
@@ -16,8 +15,7 @@ TEXT = {
         'eyebrow': 'مجيد بالأرقام',
         'h2': ('كوب بعد كوب.', 'ملايين المرات.'),
         'p': 'أرقام قليلة وراء الاسم الذي تراه على رفّك.',
-        'facts': [('١٠٬٠٠٠', '', 'طن من الشاي المباع', '١٠٬٠٠٠ طن من الشاي المباع'),
-                  ('٢٥٠', 'مليون', 'كوب شاي تم احتساؤه', '٢٥٠ مليون كوب شاي تم احتساؤه'),
+        'facts': [('٢٥٠', 'مليون', 'كوب شاي تم احتساؤه', '٢٥٠ مليون كوب شاي تم احتساؤه'),
                   ('٢٬٧٠٠', '', 'سوق يتواجد فيه مجيد', '٢٬٧٠٠ سوق يتواجد فيه مجيد'),
                   ('{n}', '', 'منتجات (SKU)', '{n} منتجات (SKU)')],
     },
@@ -29,21 +27,8 @@ def _num(lang, n):
     return str(n) if lang == 'en' else ''.join(ARABIC_DIGITS[int(c)] for c in str(n))
 
 
-# ---------------------------------------------------------------- the four graphics (viewBox 200 x 120; the finished picture is the plain, un-animated state)
-def _bars():
-    hs = [18, 26, 24, 38, 48, 56, 70, 82]
-    out, pts = [], []
-    for i, h in enumerate(hs):
-        x = 16 + i * 22
-        out.append('<rect class="fx-bar" style="--i:%d;opacity:%.2f" x="%d" y="%d" width="14" height="%d" rx="3"/>' % (i, 0.28 + i * 0.1, x, 104 - h, h))
-        pts.append('%d,%d' % (x + 7, 104 - h - 10))
-    return ('<svg viewBox="0 0 200 120" aria-hidden="true" focusable="false"><line class="fx-base" x1="10" y1="104" x2="190" y2="104"/>' + ''.join(out)
-            + '<path class="fx-trend" pathLength="1" d="M%s"/><circle class="fx-dot" cx="%s" cy="%s" r="4"/><circle class="fx-dot-ring" cx="%s" cy="%s" r="4"/></svg>'
-            % (' L'.join(pts), pts[-1].split(',')[0], pts[-1].split(',')[1], pts[-1].split(',')[0], pts[-1].split(',')[1]))
-
-
+# ---------------------------------------------------------------- the three graphics (viewBox 200 x 120; the finished picture is the plain, un-animated state)
 GLASS = 'M76 32 C80 44 86 50 86 58 C86 64 80 68 80 76 C80 86 90 92 100 92 C110 92 120 86 120 76 C120 68 114 64 114 58 C114 50 120 44 124 32 Z'
-
 
 def _cups():
     def static_glass(clip_id):
@@ -91,7 +76,7 @@ def _packs():
 
 def facts_html(lang, n_products):
     t = TEXT[lang]
-    arts = [_bars(), _cups(), _network(), _packs()]
+    arts = [_cups(), _network(), _packs()]
     tiles = ''
     for (fig, unit, label, aria), art in zip(t['facts'], arts):
         fig = fig.replace('{n}', _num(lang, n_products)); aria = aria.replace('{n}', _num(lang, n_products))
@@ -109,7 +94,7 @@ FACTS_CSS = (
     '.facts-glow{position:absolute;z-index:-1;inset:-20% -10% auto auto;width:60vw;height:60vw;max-width:760px;max-height:760px;border-radius:50%;background:radial-gradient(circle,#e9b94933,#e9b94900 66%);animation:fx-drift 16s ease-in-out infinite alternate}'
     '.facts:before{content:"";position:absolute;z-index:-1;inset:auto auto -30% -12%;width:50vw;height:50vw;max-width:640px;max-height:640px;border-radius:50%;background:radial-gradient(circle,#ca2a2024,#ca2a2000 66%)}'
     '.facts .eyebrow{color:#cfcab9}.facts h2{color:var(--paper)}.facts h2 em{color:var(--gold)}.facts .section-heading>p{color:#b9b6a6}'
-    '.facts-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}'
+    '.facts-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}'
     '.fact{position:relative;padding:26px 26px 30px;border:1px solid #f5f0e51f;border-radius:24px;background:linear-gradient(165deg,#f5f0e512,#f5f0e505);transition:transform .35s,border-color .35s,background .35s}'
     '.fact:hover{transform:translateY(-6px);border-color:#e9b94966;background:linear-gradient(165deg,#f5f0e51a,#f5f0e508)}'
     '.fact-art{height:128px;margin-bottom:22px}.fact-art svg{display:block;width:100%;height:100%;overflow:visible}'
@@ -120,9 +105,7 @@ FACTS_CSS = (
     '.ku .facts h2{font-size:clamp(32px,3.9vw,58px)}'
     '.ku .fact-figure,.ku .fact-label{font-family:var(--ku-font)}'
     # the pictures: the finished drawing is the plain state; each animation only plays from its first frame while the section is on screen
-    '.fx-base{stroke:#f5f0e540;stroke-width:1.5}.fx-bar{fill:var(--gold);transform-box:fill-box;transform-origin:50% 100%}'
-    '.fx-trend{fill:none;stroke:var(--paper);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1}'
-    '.fx-dot{fill:var(--paper)}.fx-dot-ring{fill:none;stroke:var(--paper);stroke-width:1.5;opacity:0;transform-box:fill-box;transform-origin:center}'
+    '.fx-base{stroke:#f5f0e540;stroke-width:1.5}'
     '.fx-glass{fill:#f5f0e50f;stroke:#f5f0e5d9;stroke-width:1.6;stroke-linejoin:round}.fx-rim{fill:none;stroke:#f5f0e5a6;stroke-width:1.2}.fx-saucer{fill:#f5f0e514;stroke:#f5f0e566;stroke-width:1.2}'
     '.fx-tea{fill:#5a1f0c}.fx-steam{fill:none;stroke:#f5f0e5;stroke-width:2;stroke-linecap:round;opacity:.55}'
     '.fx-mini{opacity:.55;transform-box:fill-box;transform-origin:50% 100%}'
@@ -133,10 +116,6 @@ FACTS_CSS = (
     '.fx-jar{fill:#f5f0e51f;stroke:#f5f0e580;stroke-width:.8}.fx-leaf{fill:#3a1a0b}.fx-cap-g{fill:#2ba53a}.fx-cap-b{fill:#1d46c6}.fx-lab-g{fill:#2f8f3d}.fx-lab-b{fill:#2a54c8}'
     '.fx-lab-gold{fill:#e9b949}.fx-lab-red{fill:#ca2a20}.fx-lab-white{fill:#f5f0e5}.fx-pouch{fill:#c9a93d}.fx-seal{fill:none;stroke:#f5f0e5a6;stroke-width:1.2}'
     '.fx-tin{fill:#e1b043}.fx-tin-lid{fill:#efc45a}.fx-tin-shine{fill:#fff3;}.fx-trade{fill:#3d7a35}'
-    '[data-run] .fx-bar{animation:fx-grow 1.3s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i)*.11s)}'
-    '[data-run] .fx-trend{animation:fx-draw 1.5s ease-out 1s both}'
-    '[data-run] .fx-dot{animation:fx-pop .5s cubic-bezier(.34,1.56,.64,1) 2.4s both}'
-    '[data-run] .fx-dot-ring{animation:fx-ring 2s ease-out 2.6s infinite}'
     '[data-run] .fx-fill{animation:fx-fill 2.6s cubic-bezier(.3,.6,.3,1) .2s both}'
     '[data-run] .fx-steam{animation:fx-steam 3.2s ease-in-out infinite;animation-delay:calc(var(--i)*.7s + 1.4s)}'
     '[data-run] .fx-mini{animation:fx-pop 1s cubic-bezier(.34,1.56,.64,1) both;animation-delay:calc(var(--i)*.35s + 1.2s)}'
@@ -144,15 +123,14 @@ FACTS_CSS = (
     '[data-run] .fx-node{animation:fx-pop .6s cubic-bezier(.34,1.56,.64,1) both;animation-delay:calc(var(--i)*.09s + .9s)}'
     '[data-run] .fx-ripple{animation:fx-ripple 3.6s ease-out infinite;animation-delay:calc(var(--i)*1.2s)}'
     '[data-run] .fx-pk{animation:fx-pack .8s cubic-bezier(.34,1.56,.64,1) both;animation-delay:calc(var(--i)*.12s + .2s)}'
-    '@keyframes fx-grow{from{transform:scaleY(0)}}@keyframes fx-draw{from{stroke-dashoffset:1}}'
+    '@keyframes fx-draw{from{stroke-dashoffset:1}}'
     '@keyframes fx-pop{from{opacity:0;transform:scale(.2)}}'
-    '@keyframes fx-ring{0%{opacity:.7;transform:scale(1)}100%{opacity:0;transform:scale(4)}}'
     '@keyframes fx-fill{from{transform:translateY(52px)}}'
     '@keyframes fx-steam{0%{opacity:0;transform:translateY(7px)}40%{opacity:.7}100%{opacity:0;transform:translateY(-8px)}}'
     '@keyframes fx-ripple{0%{opacity:.7;transform:scale(1)}100%{opacity:0;transform:scale(5.2)}}'
     '@keyframes fx-pack{from{opacity:0;transform:translateY(18px) scale(.5)}}'
     '@keyframes fx-drift{from{transform:translate(0,0)}to{transform:translate(-6%,8%)}}'
-    '@media (max-width:1000px){.facts-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}'
+    '@media (max-width:1000px){.facts-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.fact:last-child{grid-column:1/-1}}'
     '@media (max-width:560px){.facts-grid{gap:12px}.fact{padding:18px 16px 22px;border-radius:20px}.fact-art{height:84px;margin-bottom:14px}'
     '.fact-figure{font-size:clamp(30px,9.4vw,40px)}.fact .fact-label{font-size:12px;margin-top:10px}}'
 )

@@ -18,6 +18,10 @@ python3 integrate.py original.html ../game3d/dist/majeed3d.min.js ../index.html
 ## Products
 The Golden Majeed 600 g tin (`GOLD` in `integrate.py`; its Kurdish wording is `KU_GOLDEN` in `ku_strings.py`) the two cartons, Cardamom Tea 4.2 kg and Pekoe Black Tea 8 kg (`CARTONS`), and the yellow Premium Tea 1 kg bag (`PREMIUM_BAG`) (both in `more_products.py`, with their Kurdish wording), are all added by `add_products()` in `more_products.py`: slider, product index, count, and their own pages in English / Arabic / Kurdish. The carton photos are `assets/revised-*.webp` (originals in `source/cartons/`); the wide carton pictures get the `wide` class so the slider and product page show them large.
 
+The old "signature jar" picture (a long jar that is not one of the real products) is gone from the whole site: the hero opens on the real Cardamom Tea 800 g jar, and everywhere else (moments panel, story, distribution scene, the floating "Find Majeed Tea" tile, the distributor icon) the real Cardamom Tea 1 kg jar is used (`SIGNATURE_JAR` / `REAL_JAR` in `integrate.py`).
+
+`copy_edits.py`: wording changes asked for by the owner (the Arabic tagline is now "طعم الأوقات الحلوة") and the scrolling words strip under the hero, which was removed.
+
 `no_india.py`: the owner asked for every mention of "Indian" to go. It swaps the few places in the uploaded pages (product descriptions, the mission text, the "Origin: India" row, the home page line and stamp, the products page title) and `check_clean()` stops the build if any page, in any language, still has it.
 It appears in the product slider, the product index, as its own product page in English, Arabic and Kurdish, and in the tea game's product picker (`../game3d`).
 
@@ -36,7 +40,7 @@ The round Majeed button at the bottom right of a phone is wired in `WIRING` in `
 The tea in every CSS-drawn glass is `#4C1208` (`.glass-liquid` in `CSS_LANG`, `integrate.py`).
 
 ## Buzzify credit
-`buzzify_credit.py`: the Buzzify mark (`assets/buzzify-mark.webp`, built from the wordmark in the buzzify-site project) and "Developed by Buzzify" at the bottom of every page's footer, linking to buzzify.me.
+`buzzify_credit.py`: the Buzzify mark (`assets/buzzify-mark.webp`, built from the wordmark in the buzzify-site project) and "Developed by Buzzify" at the bottom of the About page only (English / Arabic / Kurdish; it was taken off the other pages at the owner's request)'s footer, linking to buzzify.me.
 
 ## About page text
 `about_tradition.py`: the "Majeed Tea — A Tradition in Every Cup" section of the About pages (English supplied by the owner; the Arabic is `TEXT['ar']` in that file and the Kurdish is `KU_ABOUT` in `ku_strings.py`).

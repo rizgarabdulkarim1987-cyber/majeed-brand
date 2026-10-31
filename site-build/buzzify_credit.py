@@ -1,4 +1,4 @@
-"""The Buzzify credit in the footer of every page: the Buzzify mark (round black badge, white "buzz!fy" with its blue dot) and "Developed by Buzzify",
+"""The Buzzify credit in the footer of the About page (all three languages) only: the Buzzify mark (round black badge, white "buzz!fy" with its blue dot) and "Developed by Buzzify",
 linking to buzzify.me. The mark is built from the wordmark in public/brand/logo-white.png of the buzzify-site project (assets/buzzify-mark.webp, 240 px)."""
 
 CREDIT_IMAGE = 'assets/buzzify-mark.webp'

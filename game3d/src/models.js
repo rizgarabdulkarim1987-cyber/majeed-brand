@@ -231,9 +231,6 @@ export const PRODUCTS = {
   'classic-800g': { type: 'jar', h: 15.5, split: 0.16, card: false, cap: 0x1d46c6 },
   // the gold tin: a metal body (gold rim, no glass), and a domed lid that lifts off
   'golden-600g': { type: 'jar', h: 16.0, card: false, cap: 0xeabf4a, metal: true },
-  // the cartons: a thick cut-out of the pack photo (no cap); it tips from its top corner to pour
-  'cardamom-4200g': { type: 'carton', h: 11.5, card: true },
-  'pekoe-black-8000g': { type: 'carton', h: 12.5, card: false },
   'premium-1kg': { type: 'pouch', h: 17.5, card: false },     // the yellow 1 kg bag: black tea only
 };
 
@@ -294,15 +291,6 @@ export function buildPack(ctx, slug, tex) {
     seal.position.set(0, H - 0.1, 0);
     g.add(f, seal);
     return { group: g, cap: null, mouthLocal: new THREE.Vector3(0, H - 0.1, 0), spread: W * 0.34, W, H, spec };
-  }
-  if (spec.type === 'carton') {
-    // the photo (alpha cut-out) repeated in thin slices: the front and back at full brightness, the slices between darker, so the box has a body whatever its outline
-    const D = 3.4, n = 6;
-    const geo = new THREE.PlaneGeometry(W, H); geo.translate(0, H / 2, 0);
-    const lit = new THREE.MeshStandardMaterial({ map: tex, alphaTest: 0.5, roughness: 0.5, metalness: 0, envMap: ctx.envMap, envMapIntensity: 0.22, side: THREE.DoubleSide, emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: 0.16 });
-    const edge = lit.clone(); edge.color.setScalar(0.5); edge.emissiveIntensity = 0.03;
-    for (let i = 0; i <= n; i++) { const m = new THREE.Mesh(geo, i === 0 || i === n ? lit : edge); m.position.z = -D / 2 + (D * i) / n; g.add(m); }
-    return { group: g, cap: null, mouthLocal: new THREE.Vector3(W * 0.36, H * 0.86, 0), spread: 1.4, W, H, spec };
   }
   // a jar: a round body with an open glass mouth, and a ribbed screw cap (straight band, rounded shoulder, flat top) that really comes off
   const f0 = prof.cap0, f1 = prof.cap1, hb = f0 * H, hc = (f1 - f0) * H;

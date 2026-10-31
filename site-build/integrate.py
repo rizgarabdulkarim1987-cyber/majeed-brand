@@ -20,6 +20,7 @@ from safari_fixes import SAFARI_CSS
 from buzzify_credit import add_credit, CREDIT_CSS, CREDIT_IMAGE
 from about_tradition import add_tradition, ABOUT_CSS
 from no_india import remove_india, check_clean
+from copy_edits import apply_copy_edits, KU_COPY
 from more_products import CARTONS, NEW_PRODUCTS, KU_CARTONS, add_products
 
 orig_path, bundle_path, out_path = sys.argv[1:4]
@@ -43,6 +44,7 @@ GOLD = {
     'flavor': {'en': 'The authentic Ceylon taste', 'ar': 'الطعم السيلاني الأصيل'},
 }
 
+apply_copy_edits(pages)                   # wording changes the owner asked for (see copy_edits.py)
 remove_india(pages)                       # the owner asked for every mention of "Indian" to go (before anything is cloned from these pages)
 NEW_PRODUCTS[0]['after'] = 'golden-600g'  # the new products follow the tin, one after the other (the slides next to the first one stay as they were)
 for _prev, _c in zip(NEW_PRODUCTS, NEW_PRODUCTS[1:]): _c['after'] = _prev['slug']
@@ -78,19 +80,17 @@ T = {
 PICK = {
     'en': ('Choose your tea', [('cardamom-pouch', 'Cardamom Pouch', 'Pouch'), ('cardamom-450g', 'Cardamom Tea', '450 g'), ('cardamom-800g', 'Cardamom Tea', '800 g'),
                               ('cardamom-1kg', 'Cardamom Tea', '1 kg'), ('classic-450g', 'Classic Black Tea', '450 g'), ('classic-800g', 'Classic Black Tea', '800 g'),
-                              ('golden-600g', 'Golden Majeed', '600 g'), ('cardamom-4200g', 'Cardamom Tea', '4.2 kg'), ('pekoe-black-8000g', 'Pekoe Black Tea', '8 kg'), ('premium-1kg', 'Premium Tea', '1 kg')]),
+                              ('golden-600g', 'Golden Majeed', '600 g'), ('premium-1kg', 'Premium Tea', '1 kg')]),
     'ar': ('اختر شايك', [('cardamom-pouch', 'كيس شاي بالهيل', 'كيس'), ('cardamom-450g', 'شاي بالهيل', '٤٥٠ غ'), ('cardamom-800g', 'شاي بالهيل', '٨٠٠ غ'),
                          ('cardamom-1kg', 'شاي بالهيل', '١ كغ'), ('classic-450g', 'الشاي الأسود الكلاسيكي', '٤٥٠ غ'), ('classic-800g', 'الشاي الأسود الكلاسيكي', '٨٠٠ غ'),
-                         ('golden-600g', 'مجيد الذهبي', '٦٠٠ غ'), ('cardamom-4200g', 'شاي بالهيل', '٤٫٢ كغ'), ('pekoe-black-8000g', 'شاي بيكو أسود', '٨ كغ'), ('premium-1kg', 'شاي ممتاز', '١ كغ')]),
+                         ('golden-600g', 'مجيد الذهبي', '٦٠٠ غ'), ('premium-1kg', 'شاي ممتاز', '١ كغ')]),
 }
-
-WIDE = {c['slug'] for c in CARTONS}       # the carton photos are wider than tall
 
 def picker_html(lang):
     label, items = PICK[lang]
     chips = ''.join(
-        '<button class="gm-prod" type="button" role="radio" aria-checked="%s" data-slug="%s"><img %ssrc="assets/game/prod-%s.webp" alt="" draggable="false" decoding="async" width="%d" height="%d"/>'
-        '<span><b>%s</b><small>%s</small></span></button>' % ('true' if n == 0 else 'false', slug, 'class="wide" ' if slug in WIDE else '', slug, 40 if slug in WIDE else 26, 30 if slug in WIDE else 40, name, sub)
+        '<button class="gm-prod" type="button" role="radio" aria-checked="%s" data-slug="%s"><img src="assets/game/prod-%s.webp" alt="" draggable="false" decoding="async" width="26" height="40"/>'
+        '<span><b>%s</b><small>%s</small></span></button>' % ('true' if n == 0 else 'false', slug, slug, name, sub)
         for n, (slug, name, sub) in enumerate(items))
     return '<div class="gm-picker" role="radiogroup" aria-label="%s"><span class="gm-picker-label">%s</span>%s</div>' % (label, label, chips)
 
@@ -103,7 +103,7 @@ CSS_ADD = ('.gm-picker{display:flex;flex-wrap:wrap;align-items:center;gap:8px;ma
            '@media (min-width:801px){.gm-picker{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}.gm-picker-label{grid-column:1/-1;padding:0 0 2px}.gm-prod{min-width:0}}'
            '.gm-prod{flex:none;display:flex;align-items:center;gap:8px;padding:5px 14px 5px 7px;border:1px solid var(--line);border-radius:999px;background:#fbf8f1;color:var(--ink);text-align:start;transition:background .25s,color .25s,border-color .25s,transform .25s,opacity .25s}'
            '.rtl .gm-prod{padding:5px 7px 5px 14px}'
-           '.gm-prod img{width:26px;height:40px;object-fit:contain;flex:none;filter:drop-shadow(0 3px 3px #0003)}.gm-prod img.wide{width:40px;height:30px}'
+           '.gm-prod img{width:26px;height:40px;object-fit:contain;flex:none;filter:drop-shadow(0 3px 3px #0003)}'
            '.stage-product.wide .pack{width:152%;height:92%;margin:4% 0 0 -26%}.detail-pack.wide{width:98%}'
            '.gm-prod b{display:block;font:600 12.5px/1.15 DM Sans,Noto Sans Arabic,sans-serif;white-space:nowrap}'
            '.gm-prod small{display:block;margin-top:2px;color:#66685c;font-size:11px;line-height:1.2}'
@@ -138,7 +138,7 @@ WIRING = r'''  /* ---- tea game: a real WebGL 3D kitchen, five steps from leaf t
     var step1Mode = '';
     var gst = $('.gm-stage', tg), gsteps = $$('.gm-steps .gm-step', tg), gstatus = $('.gm-status', tg), glive = $('.gm-sr', tg), gmute = $('.gm-icon', tg);
     var els = { stage: gst, canvas: $('.gm-gl', tg), prompt: $('.gm-prompt', tg) };
-    var picks = $$('.gm-prod', tg), PRODS = ['cardamom-pouch', 'cardamom-450g', 'cardamom-800g', 'cardamom-1kg', 'classic-450g', 'classic-800g', 'golden-600g', 'cardamom-4200g', 'pekoe-black-8000g', 'premium-1kg'];
+    var picks = $$('.gm-prod', tg), PRODS = ['cardamom-pouch', 'cardamom-450g', 'cardamom-800g', 'cardamom-1kg', 'classic-450g', 'classic-800g', 'golden-600g', 'premium-1kg'];
     var last = { done: 0 }, muted = false, doneEl = null, game = null;
     var imgOf = function (p) { return (window.__IMG && window.__IMG[p]) || p; };
     var paintGame = function (u) {
@@ -305,9 +305,9 @@ for key in ('index.html', 'ar.html'):
     assert sec.count('class="gm-step"') == 5
     h = h[:a] + sec + h[b:]
 
-    # ---- 'Majeed in numbers': the second section of the home page (after the hero and its ticker)
+    # ---- 'Majeed in numbers': the second section of the home page (straight after the hero)
     i0 = h.index('<section class="moments section" id="moments">')
-    assert h.count('<section class="moments section" id="moments">') == 1 and h[:i0].endswith('</div>'), key
+    assert h.count('<section class="moments section" id="moments">') == 1 and h[:i0].endswith('</section>'), key
     mj = h.index('window.__MJ=') + len('window.__MJ=')
     n_products = len(json.JSONDecoder().raw_decode(h, mj)[0]['products'])
     h = h[:i0] + facts_html(lang, n_products) + h[i0:]
@@ -356,7 +356,7 @@ KU = dict(KU_BY_INDEX)
 for k, v in KU_SCRIPT.items():
     assert KU.get(k, v) == v, ('conflicting translation', k)
     KU[k] = v
-for k, v in list(KU_GOLDEN.items()) + list(KU_CARTONS.items()) + list(KU_FACTS.items()) + list(KU_ABOUT.items()):
+for k, v in list(KU_GOLDEN.items()) + list(KU_CARTONS.items()) + list(KU_FACTS.items()) + list(KU_ABOUT.items()) + list(KU_COPY.items()):
     assert KU.get(k, v) == v, ('conflicting translation', k)
     KU[k] = v
 _g = KU_GAME
@@ -393,7 +393,7 @@ SCRIPT_PATCHES = [
      "(motion ? L('Pause motion', 'إيقاف الحركة', %s) : L('Enable motion', 'تشغيل الحركة', %s))" % (json.dumps(ku_of('إيقاف الحركة'), ensure_ascii=False), json.dumps(ku_of('تشغيل الحركة'), ensure_ascii=False))),
     ("ar ? 'القائمة' : 'Navigation'", "L('Navigation', 'القائمة', %s)" % json.dumps(ku_of('القائمة'), ensure_ascii=False)),
     ("(ar ? 'إغلاق القائمة' : 'Close menu')", "L('Close menu', 'إغلاق القائمة', %s)" % json.dumps(ku_of('إغلاق القائمة'), ensure_ascii=False)),
-    ("'<p>طعم كل الأوقات</p>'", "'<p>' + L('طعم كل الأوقات', 'طعم كل الأوقات', %s) + '</p>'" % json.dumps(ku_of('طعم كل الأوقات'), ensure_ascii=False)),
+    ("'<p>طعم الأوقات الحلوة</p>'", "'<p>' + L('طعم الأوقات الحلوة', 'طعم الأوقات الحلوة', %s) + '</p>'" % json.dumps(ku_of('طعم الأوقات الحلوة'), ensure_ascii=False)),
     ("var word = ar ? m.ar : m.en;", "var word = m[lang] || m.en;"),
     ("ar ? m.titleAr : m.titleEn", "ku ? m.titleKu : ar ? m.titleAr : m.titleEn"),
     ("(ar ? 'عرض ' : 'Show ')", "L('Show ', 'عرض ', %s)" % json.dumps(ku_of('عرض '), ensure_ascii=False)),
@@ -507,8 +507,9 @@ CSS_LANG = (
 for key in list(pages):
     h = add_switcher(key, pages[key])
     ls = h.rindex('</style>')
-    pages[key] = h[:ls] + CSS_LANG + MOBILE_ALL_CSS + DESKTOP_FIXES_CSS + SAFARI_CSS + CREDIT_CSS + (ABOUT_CSS if page_id(key)[1] == 'about' else '') + h[ls:]
-    pages[key] = add_credit(key, pages[key])
+    is_about = page_id(key)[1] == 'about'
+    pages[key] = h[:ls] + CSS_LANG + MOBILE_ALL_CSS + DESKTOP_FIXES_CSS + SAFARI_CSS + (CREDIT_CSS + ABOUT_CSS if is_about else '') + h[ls:]
+    if is_about: pages[key] = add_credit(key, pages[key])      # "Developed by Buzzify" is on the About page only (the owner asked for it to come off the other pages)
 
 # ---- 5) the fonts themselves. Arabic Typesetting and NRT are used where they are installed (local()), and are embedded from
 # ----    fonts/ if the font files are there (they are licensed/third-party fonts, so they are not downloaded or bundled here).
@@ -552,10 +553,16 @@ _amiri = os.path.join(here, 'fonts-open', 'amiri-arabic-400-subset.woff2')
 FONT_FACES += face('Amiri', '400', [], None, raw=_amiri)
 with open(os.path.join(here, CREDIT_IMAGE), 'rb') as fh:
     imgs[CREDIT_IMAGE] = 'data:image/webp;base64,' + base64.b64encode(fh.read()).decode()
-for slug in ('cardamom-pouch', 'cardamom-450g', 'cardamom-800g', 'cardamom-1kg', 'classic-450g', 'classic-800g', 'golden-600g', 'cardamom-4200g', 'pekoe-black-8000g', 'premium-1kg'):
+for slug in ('cardamom-pouch', 'cardamom-450g', 'cardamom-800g', 'cardamom-1kg', 'classic-450g', 'classic-800g', 'golden-600g', 'premium-1kg'):
     with open(os.path.join(here, '..', 'game3d', 'products', slug + '.webp'), 'rb') as fh:
         imgs['assets/game/prod-%s.webp' % slug] = 'data:image/webp;base64,' + base64.b64encode(fh.read()).decode()
 
+# ---- the old "signature jar" picture (a long jar that is not one of the real products) is gone everywhere:
+# ----   the hero already opens on the real Cardamom Tea 800 g jar (hero_slides.py); the rest (moments panel, story, distribution scene,
+# ----   the floating "Find Majeed Tea" tile and the distributor icon) now show the real Cardamom Tea 1 kg jar
+SIGNATURE_JAR, REAL_JAR = 'assets/majeed-signature-jar.webp', 'assets/revised-cardamom-1000.webp'
+for key in list(pages):
+    pages[key] = pages[key].replace(SIGNATURE_JAR, REAL_JAR)
 check_clean(pages)                        # no page, in any language, may still say "Indian"
 # ---------------------------------------------------------------- images: drop what only the old 2D game used
 blob = json.dumps(pages, ensure_ascii=False)
