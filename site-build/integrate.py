@@ -21,6 +21,7 @@ from buzzify_credit import add_credit, CREDIT_CSS, CREDIT_IMAGE
 from about_tradition import add_tradition, ABOUT_CSS
 from no_india import remove_india, check_clean
 from copy_edits import apply_copy_edits, KU_COPY
+from factory_slider import add_factory_slider, KU_SLIDER, SLIDER_CSS, SLIDER_JS
 from more_products import CARTONS, NEW_PRODUCTS, KU_CARTONS, add_products
 
 orig_path, bundle_path, out_path = sys.argv[1:4]
@@ -50,6 +51,7 @@ NEW_PRODUCTS[0]['after'] = 'golden-600g'  # the new products follow the tin, one
 for _prev, _c in zip(NEW_PRODUCTS, NEW_PRODUCTS[1:]): _c['after'] = _prev['slug']
 add_products(pages, imgs, [GOLD] + NEW_PRODUCTS, here)
 add_tradition(pages)
+add_factory_slider(pages, imgs, here)     # the photo slider on the Factories page
 
 # ---------------------------------------------------------------- text per language
 T = {
@@ -266,7 +268,7 @@ WIRING = r'''  /* ---- tea game: a real WebGL 3D kitchen, five steps from leaf t
 
 '''
 
-WIRING = WIRING.replace('  /* ---- language menu: closes on an outside click or Escape ---- */', HERO_SLIDES_JS + DESKTOP_FIXES_JS + '  /* ---- language menu: closes on an outside click or Escape ---- */', 1)
+WIRING = WIRING.replace('  /* ---- language menu: closes on an outside click or Escape ---- */', HERO_SLIDES_JS + DESKTOP_FIXES_JS + SLIDER_JS + '  /* ---- language menu: closes on an outside click or Escape ---- */', 1)
 WIRING = WIRING.replace('  /* ---- "Majeed in numbers"', GAME_MOBILE_JS + '  /* ---- "Majeed in numbers"', 1)
 assert 'steps aside while the game' in WIRING
 assert 'hero: the product picture' in WIRING
@@ -356,7 +358,7 @@ KU = dict(KU_BY_INDEX)
 for k, v in KU_SCRIPT.items():
     assert KU.get(k, v) == v, ('conflicting translation', k)
     KU[k] = v
-for k, v in list(KU_GOLDEN.items()) + list(KU_CARTONS.items()) + list(KU_FACTS.items()) + list(KU_ABOUT.items()) + list(KU_COPY.items()):
+for k, v in list(KU_GOLDEN.items()) + list(KU_CARTONS.items()) + list(KU_FACTS.items()) + list(KU_ABOUT.items()) + list(KU_COPY.items()) + list(KU_SLIDER.items()):
     assert KU.get(k, v) == v, ('conflicting translation', k)
     KU[k] = v
 _g = KU_GAME
@@ -508,7 +510,7 @@ for key in list(pages):
     h = add_switcher(key, pages[key])
     ls = h.rindex('</style>')
     is_about = page_id(key)[1] == 'about'
-    pages[key] = h[:ls] + CSS_LANG + MOBILE_ALL_CSS + DESKTOP_FIXES_CSS + SAFARI_CSS + (CREDIT_CSS + ABOUT_CSS if is_about else '') + h[ls:]
+    pages[key] = h[:ls] + CSS_LANG + MOBILE_ALL_CSS + DESKTOP_FIXES_CSS + SAFARI_CSS + (CREDIT_CSS + ABOUT_CSS if is_about else '') + (SLIDER_CSS if page_id(key)[1] == 'factories' else '') + h[ls:]
     if is_about: pages[key] = add_credit(key, pages[key])      # "Developed by Buzzify" is on the About page only (the owner asked for it to come off the other pages)
 
 # ---- 5) the fonts themselves. Arabic Typesetting and NRT are used where they are installed (local()), and are embedded from

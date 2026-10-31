@@ -20,6 +20,8 @@ The Golden Majeed 600 g tin (`GOLD` in `integrate.py`; its Kurdish wording is `K
 
 The old "signature jar" picture (a long jar that is not one of the real products) is gone from the whole site: the hero opens on the real Cardamom Tea 800 g jar, and everywhere else (moments panel, story, distribution scene, the floating "Find Majeed Tea" tile, the distributor icon) the real Cardamom Tea 1 kg jar is used (`SIGNATURE_JAR` / `REAL_JAR` in `integrate.py`).
 
+`factory_slider.py`: the photo slider on the Factories page, right under its headline (the five tea-garden photos `assets/factory-1..5.webp`, 1600 px; pictures only, no caption). Arrows, dots, swipe / drag, arrow keys, and it moves on by itself every 5 seconds (it waits while the pointer is on it, off screen, in a hidden tab, or with motion switched off). English / Arabic / Kurdish (it mirrors in the right-to-left pages). The page loader only maps `assets/<name>` and `assets/game/<name>`, so new pictures must not sit in another sub-folder.
+
 `copy_edits.py`: wording changes asked for by the owner (the Arabic tagline is now "طعم الأوقات الحلوة") and the scrolling words strip under the hero, which was removed.
 
 `no_india.py`: the owner asked for every mention of "Indian" to go. It swaps the few places in the uploaded pages (product descriptions, the mission text, the "Origin: India" row, the home page line and stamp, the products page title) and `check_clean()` stops the build if any page, in any language, still has it.

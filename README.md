@@ -27,4 +27,5 @@ Push `main` and Hostinger deploys it.
 - About page: the spirit, "A Tradition in Every Cup", mission / vision / values
 - Languages: English, Arabic (headlines in Arabic Typesetting, Amiri where it is not installed), Kurdish (NRT, Noto Sans Arabic where it is not installed). Kurdish text is `site-build/ku_strings.py`; it has not been proof-read by a native speaker yet
 - Phones, iPads and Macs: stacked hero on phones and upright tablets, a big tea-game scene on phones, Safari / iOS fixes (`desktop_fixes.py`, `mobile_fixes.py`, `safari_fixes.py`)
+- Factories page: a photo slider (five tea-garden photos) under the headline (`site-build/factory_slider.py`)
 - Footer credit on the About page only: "Developed by Buzzify" (the Buzzify mark), linking to buzzify.me

@@ -12,6 +12,7 @@ Every script takes the built `index.html` first. (WebGL runs on the software ren
 | `nav_cover.js <html> [widths]` | content hidden under the fixed header |
 | `nav_test.js`, `menu_test.js`, `check_site.js` | page switching, the language menu (Escape / outside click), the home page, the contact form message |
 | `page_test.js <html> <outdir> <W> <H> <en\|ar\|ku> <flow.json>` | drives the tea game (`flows/*.json`: pick a tea, run the five steps, screenshots) |
+| `factory_slider_test.js` | the Factories photo slider: arrows, dots, swipe, auto-advance, in en / ar / ku |
 | `cartons_test.js` | the two cartons and the Premium Tea bag on the slider and their pages in en / ar / kurdish, and that no page says Indian |
 | `hero_slide_test.js`, `facts_test.js`, `gold_test.js`, `arrows_test.js`, `picker_click.js` | the hero slide show, the numbers section, the Golden Majeed pages, the slider arrows, the tea picker |
 | `ph_game.js`, `ph_game_pour.js`, `ph_hero.js`, `ph_fab.js`, `ph_el.js` | phone screenshots of the game, the hero, the round button's menu and single elements |
