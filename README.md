@@ -22,7 +22,7 @@ python3 site-build/integrate.py original.html game3d/dist/majeed3d.min.js index.
 Push `main` and Hostinger deploys it.
 
 ## What the site has
-- Products (Cardamom 450 g / 800 g / 1 kg / 5 kg trade pack / pouch, Classic Black 450 g / 800 g, Golden Majeed 600 g tin), each with its own page, in a 3D-style slider; the Golden Majeed is added by `add_golden()` in `integrate.py`
+- Products (Cardamom 450 g / 800 g / 1 kg / 5 kg trade pack / pouch, Classic Black 450 g / 800 g, Golden Majeed 600 g tin, Cardamom Tea 4.2 kg carton, Pekoe Black Tea 8 kg carton), each with its own page, in a 3D-style slider; the tin and the cartons are added by `add_products()` in `site-build/more_products.py`. No page says "Indian" any more (`site-build/no_india.py` takes it out of the uploaded text, and the build stops if it is still anywhere)
 - Home page: hero slide show (changes every 5 s), "Majeed in numbers" (10,000 tons, 250 million cups, 2,700 markets, 8 products), tea moments, the 3D tea game (choose your tea, five steps), story, distributors
 - About page: the spirit, "A Tradition in Every Cup", mission / vision / values
 - Languages: English, Arabic (headlines in Arabic Typesetting, Amiri where it is not installed), Kurdish (NRT, Noto Sans Arabic where it is not installed). Kurdish text is `site-build/ku_strings.py`; it has not been proof-read by a native speaker yet

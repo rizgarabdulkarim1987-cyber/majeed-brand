@@ -16,7 +16,9 @@ python3 integrate.py original.html ../game3d/dist/majeed3d.min.js ../index.html
 ```
 
 ## Products
-The Golden Majeed 600 g tin is added by `add_golden()` in `integrate.py` (data in `GOLD`; its photo is `assets/revised-golden-600.webp`; its Kurdish wording is `KU_GOLDEN` in `ku_strings.py`).
+The Golden Majeed 600 g tin (`GOLD` in `integrate.py`; its Kurdish wording is `KU_GOLDEN` in `ku_strings.py`) and the two cartons, Cardamom Tea 4.2 kg and Pekoe Black Tea 8 kg (`CARTONS` in `more_products.py`, with their Kurdish wording), are all added by `add_products()` in `more_products.py`: slider, product index, count, and their own pages in English / Arabic / Kurdish. The carton photos are `assets/revised-*.webp` (originals in `source/cartons/`); the wide carton pictures get the `wide` class so the slider and product page show them large.
+
+`no_india.py`: the owner asked for every mention of "Indian" to go. It swaps the few places in the uploaded pages (product descriptions, the mission text, the "Origin: India" row, the home page line and stamp, the products page title) and `check_clean()` stops the build if any page, in any language, still has it.
 It appears in the product slider, the product index, as its own product page in English, Arabic and Kurdish, and in the tea game's product picker (`../game3d`).
 
 ## Phone layout

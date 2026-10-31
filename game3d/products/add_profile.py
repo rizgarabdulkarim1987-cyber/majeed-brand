@@ -1,5 +1,6 @@
 """Measures a product photo (transparent webp, 720 px tall) and stores its outline in profiles.json + ../src/profiles.js.
    python3 add_profile.py <slug> <cap0_row>
+   python3 add_profile.py <slug> --flat        (a carton: only the picture's proportions are needed)
  * the outline is the radius / height at 241 even steps from the bottom, taken from the picture itself;
  * cap0_row: the pixel row (from the top of the 720 px picture) of the seam where the lid / cap sits on the body;
  * cap1 (the front edge of the lid's top face) is found from the picture: the first row, from the top, where the width stops growing.
@@ -8,9 +9,21 @@ import json, os, sys
 from PIL import Image
 
 here = os.path.dirname(os.path.abspath(__file__))
-slug, cap0_row = sys.argv[1], int(sys.argv[2])
+slug, cap0_arg = sys.argv[1], sys.argv[2]
 im = Image.open(os.path.join(here, slug + '.webp')).convert('RGBA')
 w, h = im.size
+if cap0_arg == '--flat':
+    path = os.path.join(here, 'profiles.json')
+    prof = json.load(open(path)); prof[slug] = {'aspect': w / h}
+    json.dump(prof, open(path, 'w'))
+    with open(os.path.join(here, '..', 'src', 'profiles.js'), 'w') as f:
+        f.write('// Outline of each product photo: radius / height at 241 even steps from the bottom, taken from the picture itself.\n'
+                '// cap0..cap1: where the screw cap / lid sits (bottom edge of its band, and the front edge of its top face).\n'
+                '// (cartons only carry the picture\'s aspect)\n'
+                'export const PROFILES = ' + json.dumps(prof, separators=(',', ':')) + ';\n')
+    print(slug, 'size', (w, h), 'flat')
+    sys.exit(0)
+cap0_row = int(cap0_arg)
 mask = im.split()[3].point(lambda v: 255 if v > 100 else 0).load()
 wid = [sum(1 for x in range(w) if mask[x, y]) for y in range(h)]
 N = 240

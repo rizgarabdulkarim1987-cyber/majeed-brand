@@ -19,6 +19,8 @@ from desktop_fixes import DESKTOP_FIXES_CSS, DESKTOP_FIXES_JS
 from safari_fixes import SAFARI_CSS
 from buzzify_credit import add_credit, CREDIT_CSS, CREDIT_IMAGE
 from about_tradition import add_tradition, ABOUT_CSS
+from no_india import remove_india, check_clean
+from more_products import CARTONS, KU_CARTONS, add_products
 
 orig_path, bundle_path, out_path = sys.argv[1:4]
 s = open(orig_path, encoding='utf-8').read()
@@ -40,59 +42,11 @@ GOLD = {
                     'ar': 'خلطة فاخرة من أجود أنواع الشاي الأسود بالطعم السيلاني الأصيل. طعمه طعم زمان.'},
     'flavor': {'en': 'The authentic Ceylon taste', 'ar': 'الطعم السيلاني الأصيل'},
 }
-GOLD_FILES = {'en': 'en-products-golden-600g.html', 'ar': 'ar-products-golden-600g.html'}
 
-def add_golden(pages, imgs):
-    G = GOLD
-    with open(os.path.join(here, G['image']), 'rb') as fh:
-        imgs[G['image']] = 'data:image/webp;base64,' + base64.b64encode(fh.read()).decode()
-    def one(h, old, new, what):
-        assert h.count(old) == 1, (what, h.count(old), old[:70])
-        return h.replace(old, new)
-    # 1) the detail pages, cloned from the Classic Black 800 g pages (same layout; only the product words differ)
-    t_en = {'old_title': 'Classic Black Tea 800 g | Majeed Tea', 'old_name': 'Classic Black Tea', 'old_cat': 'Tea jar', 'old_w': '800 g',
-            'old_lead': 'Indian black tea for your everyday tea ritual. Discover your Majeed moment.',
-            'origin': ('<div><dt>Origin</dt><dd>India</dd></div>', '<div><dt>Origin</dt><dd>Ask us for details</dd></div>'),
-            'flavor': ('<div><dt>Flavor profile</dt><dd>Ask us for details</dd></div>', '<div><dt>Flavor profile</dt><dd>%s</dd></div>')}
-    t_ar = {'old_title': 'الشاي الأسود الكلاسيكي ٨٠٠ غ | Majeed Tea', 'old_name': 'الشاي الأسود الكلاسيكي', 'old_cat': 'عبوة شاي', 'old_w': '٨٠٠ غ',
-            'old_lead': 'شاي هندي أسود لطقوس الشاي اليومية. اكتشف لحظتك مع مجيد.',
-            'origin': ('<div><dt>المنشأ</dt><dd>الهند</dd></div>', '<div><dt>المنشأ</dt><dd>تواصل معنا للتفاصيل</dd></div>'),
-            'flavor': ('<div><dt>النكهة</dt><dd>تواصل معنا للتفاصيل</dd></div>', '<div><dt>النكهة</dt><dd>%s</dd></div>')}
-    for lang, t in (('en', t_en), ('ar', t_ar)):
-        h = pages[('en' if lang == 'en' else 'ar') + '-products-classic-black-800g.html']
-        h = one(h, '<title>%s</title>' % t['old_title'], '<title>%s %s | Majeed Tea</title>' % (G['name'][lang], G['weight'][lang]), 'title')
-        a = h.index('<section class="product-detail'); b = h.index('</section>', a)
-        sec = h[a:b]
-        sec = one(sec, '--accent:#305cad', '--accent:' + G['accent'], 'accent')
-        sec = one(sec, 'aria-label="%s"' % t['old_name'], 'aria-label="%s"' % G['name'][lang], 'aria')
-        sec = one(sec, 'assets/revised-classic-800.webp', G['image'], 'image')
-        sec = one(sec, '<p class="eyebrow">%s<!-- --> <span>•</span> <!-- -->%s</p>' % (t['old_cat'], t['old_w']), '<p class="eyebrow">%s<!-- --> <span>•</span> <!-- -->%s</p>' % (G['category'][lang], G['weight'][lang]), 'eyebrow')
-        sec = one(sec, '<h1>%s</h1>' % t['old_name'], '<h1>%s</h1>' % G['name'][lang], 'h1')
-        sec = one(sec, '<p class="lead">%s</p>' % t['old_lead'], '<p class="lead">%s</p>' % G['description'][lang], 'lead')
-        sec = one(sec, t['origin'][0], t['origin'][1], 'origin')
-        sec = one(sec, t['flavor'][0], t['flavor'][1] % G['flavor'][lang], 'flavor')
-        sec = one(sec, '<dd>%s</dd></div></dl>' % t['old_w'], '<dd>%s</dd></div></dl>' % G['weight'][lang], 'size')
-        pages[GOLD_FILES[lang]] = h[:a] + sec + h[b:]
-    # 2) every page: the product data the sliders read, the count and the product index
-    for key in list(pages):
-        h = pages[key]; lang = 'ar' if key.startswith('ar') else 'en'
-        i = h.index('window.__MJ=') + len('window.__MJ=')
-        data, e = json.JSONDecoder().raw_decode(h, i)
-        k = [p['slug'] for p in data['products']].index(G['after']) + 1
-        data['products'].insert(k, {'slug': G['slug'], 'name': G['name'], 'category': G['category'], 'weight': G['weight'], 'description': G['description'], 'image': '/' + G['image'], 'accent': G['accent']})
-        h = h[:i] + json.dumps(data, ensure_ascii=False) + h[e:]
-        if 'class="collection-count"' in h:
-            h = one(h, '<i></i> <!-- -->07</span>', '<i></i> <!-- -->08</span>', key + ' count')
-            a = h.index('<div class="product-index"'); b = h.index('</div>', a)
-            idx = h[a:b]
-            marks = re.findall(r'<button aria-pressed="false"><span style="background:#498339"></span>[^<]*<!-- --> <small>(?:1 kg|١ كغ)</small></button>', idx)
-            assert len(marks) == 1, (key, marks)
-            new_btn = '<button aria-pressed="false"><span style="background:%s"></span>%s<!-- --> <small>%s</small></button>' % (G['accent'], G['name'][lang], G['weight'][lang])
-            idx = idx.replace(marks[0], marks[0] + new_btn)
-            h = h[:a] + idx + h[b:]
-        pages[key] = h
-
-add_golden(pages, imgs)
+remove_india(pages)                       # the owner asked for every mention of "Indian" to go (before anything is cloned from these pages)
+CARTONS[0]['after'] = 'golden-600g'       # the cartons follow the tin, one after the other (the slides next to the first one stay as they were)
+for _prev, _c in zip(CARTONS, CARTONS[1:]): _c['after'] = _prev['slug']
+add_products(pages, imgs, [GOLD] + CARTONS, here)
 add_tradition(pages)
 
 # ---------------------------------------------------------------- text per language
@@ -124,17 +78,19 @@ T = {
 PICK = {
     'en': ('Choose your tea', [('cardamom-pouch', 'Cardamom Pouch', 'Pouch'), ('cardamom-450g', 'Cardamom Tea', '450 g'), ('cardamom-800g', 'Cardamom Tea', '800 g'),
                               ('cardamom-1kg', 'Cardamom Tea', '1 kg'), ('classic-450g', 'Classic Black Tea', '450 g'), ('classic-800g', 'Classic Black Tea', '800 g'),
-                              ('golden-600g', 'Golden Majeed', '600 g')]),
+                              ('golden-600g', 'Golden Majeed', '600 g'), ('cardamom-4200g', 'Cardamom Tea', '4.2 kg'), ('pekoe-black-8000g', 'Pekoe Black Tea', '8 kg')]),
     'ar': ('اختر شايك', [('cardamom-pouch', 'كيس شاي بالهيل', 'كيس'), ('cardamom-450g', 'شاي بالهيل', '٤٥٠ غ'), ('cardamom-800g', 'شاي بالهيل', '٨٠٠ غ'),
                          ('cardamom-1kg', 'شاي بالهيل', '١ كغ'), ('classic-450g', 'الشاي الأسود الكلاسيكي', '٤٥٠ غ'), ('classic-800g', 'الشاي الأسود الكلاسيكي', '٨٠٠ غ'),
-                         ('golden-600g', 'مجيد الذهبي', '٦٠٠ غ')]),
+                         ('golden-600g', 'مجيد الذهبي', '٦٠٠ غ'), ('cardamom-4200g', 'شاي بالهيل', '٤٫٢ كغ'), ('pekoe-black-8000g', 'شاي بيكو أسود', '٨ كغ')]),
 }
+
+WIDE = {c['slug'] for c in CARTONS}       # the carton photos are wider than tall
 
 def picker_html(lang):
     label, items = PICK[lang]
     chips = ''.join(
-        '<button class="gm-prod" type="button" role="radio" aria-checked="%s" data-slug="%s"><img src="assets/game/prod-%s.webp" alt="" draggable="false" decoding="async" width="26" height="40"/>'
-        '<span><b>%s</b><small>%s</small></span></button>' % ('true' if n == 0 else 'false', slug, slug, name, sub)
+        '<button class="gm-prod" type="button" role="radio" aria-checked="%s" data-slug="%s"><img %ssrc="assets/game/prod-%s.webp" alt="" draggable="false" decoding="async" width="%d" height="%d"/>'
+        '<span><b>%s</b><small>%s</small></span></button>' % ('true' if n == 0 else 'false', slug, 'class="wide" ' if slug in WIDE else '', slug, 40 if slug in WIDE else 26, 30 if slug in WIDE else 40, name, sub)
         for n, (slug, name, sub) in enumerate(items))
     return '<div class="gm-picker" role="radiogroup" aria-label="%s"><span class="gm-picker-label">%s</span>%s</div>' % (label, label, chips)
 
@@ -147,7 +103,8 @@ CSS_ADD = ('.gm-picker{display:flex;flex-wrap:wrap;align-items:center;gap:8px;ma
            '@media (min-width:801px){.gm-picker{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}.gm-picker-label{grid-column:1/-1;padding:0 0 2px}.gm-prod{min-width:0}}'
            '.gm-prod{flex:none;display:flex;align-items:center;gap:8px;padding:5px 14px 5px 7px;border:1px solid var(--line);border-radius:999px;background:#fbf8f1;color:var(--ink);text-align:start;transition:background .25s,color .25s,border-color .25s,transform .25s,opacity .25s}'
            '.rtl .gm-prod{padding:5px 7px 5px 14px}'
-           '.gm-prod img{width:26px;height:40px;object-fit:contain;flex:none;filter:drop-shadow(0 3px 3px #0003)}'
+           '.gm-prod img{width:26px;height:40px;object-fit:contain;flex:none;filter:drop-shadow(0 3px 3px #0003)}.gm-prod img.wide{width:40px;height:30px}'
+           '.stage-product.wide .pack{width:152%;height:92%;margin:4% 0 0 -26%}.detail-pack.wide{width:98%}'
            '.gm-prod b{display:block;font:600 12.5px/1.15 DM Sans,Noto Sans Arabic,sans-serif;white-space:nowrap}'
            '.gm-prod small{display:block;margin-top:2px;color:#66685c;font-size:11px;line-height:1.2}'
            '.gm-prod:hover:not(:disabled){transform:translateY(-2px);border-color:#b9b4a6}'
@@ -181,7 +138,7 @@ WIRING = r'''  /* ---- tea game: a real WebGL 3D kitchen, five steps from leaf t
     var step1Mode = '';
     var gst = $('.gm-stage', tg), gsteps = $$('.gm-steps .gm-step', tg), gstatus = $('.gm-status', tg), glive = $('.gm-sr', tg), gmute = $('.gm-icon', tg);
     var els = { stage: gst, canvas: $('.gm-gl', tg), prompt: $('.gm-prompt', tg) };
-    var picks = $$('.gm-prod', tg), PRODS = ['cardamom-pouch', 'cardamom-450g', 'cardamom-800g', 'cardamom-1kg', 'classic-450g', 'classic-800g', 'golden-600g'];
+    var picks = $$('.gm-prod', tg), PRODS = ['cardamom-pouch', 'cardamom-450g', 'cardamom-800g', 'cardamom-1kg', 'classic-450g', 'classic-800g', 'golden-600g', 'cardamom-4200g', 'pekoe-black-8000g'];
     var last = { done: 0 }, muted = false, doneEl = null, game = null;
     var imgOf = function (p) { return (window.__IMG && window.__IMG[p]) || p; };
     var paintGame = function (u) {
@@ -399,7 +356,7 @@ KU = dict(KU_BY_INDEX)
 for k, v in KU_SCRIPT.items():
     assert KU.get(k, v) == v, ('conflicting translation', k)
     KU[k] = v
-for k, v in list(KU_GOLDEN.items()) + list(KU_FACTS.items()) + list(KU_ABOUT.items()):
+for k, v in list(KU_GOLDEN.items()) + list(KU_CARTONS.items()) + list(KU_FACTS.items()) + list(KU_ABOUT.items()):
     assert KU.get(k, v) == v, ('conflicting translation', k)
     KU[k] = v
 _g = KU_GAME
@@ -426,6 +383,7 @@ def ku_of(ar_text):
 # ---- 1) the shared page script learns a third language
 DET_KU = [ku_of(x) for x in ('تأمل لون الشاي في ضوء النهار.', 'دع البخار الدافئ يملأ اللحظة.', 'تبدأ حكاية كل كوب بورقة.', 'لمسة الهيل في مجموعة الشاي المعطر.', 'اهتمام بالتفاصيل، من الورقة إلى الكوب.', 'حضر الشاي حسب تعليمات العبوة.')]
 SCRIPT_PATCHES = [
+    ("b.className = 'stage-product position-' + k + ' ' + (off === 0 ? 'active' : '');", "b.className = 'stage-product position-' + k + ' ' + (off === 0 ? 'active' : '') + (it.wide ? ' wide' : '');"),
     ("var REVEAL = '.section-heading, ", "var REVEAL = '.section-heading, .fact, .tradition-grid>div, .tradition-promise, "),
     ("var D = window.__MJ || {}, lang = D.lang || 'en', ar = lang === 'ar';",
      "var D = window.__MJ || {}, lang = D.lang || 'en', ar = lang === 'ar', ku = lang === 'ku', L = function (e, a, k) { return ku ? k : ar ? a : e; };"),
@@ -594,10 +552,11 @@ _amiri = os.path.join(here, 'fonts-open', 'amiri-arabic-400-subset.woff2')
 FONT_FACES += face('Amiri', '400', [], None, raw=_amiri)
 with open(os.path.join(here, CREDIT_IMAGE), 'rb') as fh:
     imgs[CREDIT_IMAGE] = 'data:image/webp;base64,' + base64.b64encode(fh.read()).decode()
-for slug in ('cardamom-pouch', 'cardamom-450g', 'cardamom-800g', 'cardamom-1kg', 'classic-450g', 'classic-800g', 'golden-600g'):
+for slug in ('cardamom-pouch', 'cardamom-450g', 'cardamom-800g', 'cardamom-1kg', 'classic-450g', 'classic-800g', 'golden-600g', 'cardamom-4200g', 'pekoe-black-8000g'):
     with open(os.path.join(here, '..', 'game3d', 'products', slug + '.webp'), 'rb') as fh:
         imgs['assets/game/prod-%s.webp' % slug] = 'data:image/webp;base64,' + base64.b64encode(fh.read()).decode()
 
+check_clean(pages)                        # no page, in any language, may still say "Indian"
 # ---------------------------------------------------------------- images: drop what only the old 2D game used
 blob = json.dumps(pages, ensure_ascii=False)
 for k in list(imgs):

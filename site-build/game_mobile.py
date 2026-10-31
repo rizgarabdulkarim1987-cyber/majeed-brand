@@ -11,7 +11,7 @@ GAME_MOBILE_CSS = (
     '.teagame .section-heading{margin-bottom:12px}.teagame .section-heading h2{font-size:31px}.teagame .section-heading>p{display:none}'
     # the tea picker: one slim row
     '.gm-picker{margin-bottom:10px;padding-bottom:6px}.gm-picker-label{font-size:9px}'
-    '.gm-prod{gap:6px;padding:3px 12px 3px 5px}.rtl .gm-prod{padding:3px 5px 3px 12px}.gm-prod img{width:20px;height:31px}'
+    '.gm-prod{gap:6px;padding:3px 12px 3px 5px}.rtl .gm-prod{padding:3px 5px 3px 12px}.gm-prod img{width:20px;height:31px}.gm-prod img.wide{width:32px;height:24px}'
     '.gm-prod span{display:flex;align-items:baseline;gap:5px}.gm-prod b{font-size:12px}.gm-prod small{margin:0;font-size:10px}'
     # the stage: edge to edge, tall
     '.gm-stage{aspect-ratio:auto;height:112vw;height:min(112vw,68svh);margin-inline:-6vw;border-radius:0}'
