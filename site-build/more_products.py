@@ -1,7 +1,7 @@
 """Products added to the range, and the one function that adds any product (slider, product index, count, its own pages in EN / AR / KU).
 Used by integrate.py:  add_products(pages, imgs, [GOLD] + CARTONS, here),  KU_CARTONS (Arabic -> Kurdish for the new wording).
 
-CARTONS are the pack photos the owner supplied: Majeed Cardamom 4.2 kg and Pekoe Black 8 kg.
+CARTONS are two of the pack photos the owner supplied (Majeed Cardamom 4.2 kg, Pekoe Black 8 kg); PREMIUM_BAG is the third (the yellow 1 kg bag).
 Every figure and phrase below is what is printed on the pack. 'Kurdish' is Central Kurdish (Sorani); a native speaker should read it once."""
 import base64, json, os, re
 
@@ -26,6 +26,18 @@ CARTONS = [
      'flavor': {'en': 'Whole-leaf black tea', 'ar': 'شاي أسود بالورقة الكاملة', 'ku': 'چای ڕەش بە گەڵای تەواو'}},
 ]
 
+# the yellow 1 kg bag ("Premium Tea"); its wording is what is printed on the bag
+PREMIUM_BAG = {'slug': 'premium-1kg', 'accent': '#d8a11a', 'image': 'assets/revised-premium-1000.webp',
+    'name': {'en': 'Premium Tea', 'ar': 'شاي ممتاز', 'ku': 'چای نایاب'},
+    'category': {'en': 'Tea pouch', 'ar': 'كيس شاي', 'ku': 'کیسەی چا'},
+    'weight': {'en': '1 kg', 'ar': '١ كغ', 'ku': '١ کگم'},
+    'description': {'en': 'Premium black tea from the finest tea estates, in a 1 kg bag. Store in a cool, dry place.',
+                    'ar': 'شاي أسود ممتاز من أجود مزارع الشاي، في كيس ١ كغ. يُحفظ في مكان بارد وجاف.',
+                    'ku': 'چای ڕەشی نایاب لە باشترین کێڵگەکانی چا، لە کیسەیەکی ١ کگمیدا. لە شوێنێکی ساردی وشک بیپارێزە.'},
+    'flavor': {'en': 'Premium black tea', 'ar': 'شاي أسود ممتاز', 'ku': 'چای ڕەشی نایاب'}}
+
+NEW_PRODUCTS = CARTONS + [PREMIUM_BAG]       # added one after the other, after the Golden Majeed tin
+
 def ku_entries(specs):
     """Arabic text used on the pages -> Kurdish (names, categories, weights, sizes, descriptions, flavours and the page titles)."""
     out = {}
@@ -34,13 +46,13 @@ def ku_entries(specs):
         out[ar] = ku
     for s in specs:
         for f in ('name', 'category', 'weight', 'size', 'description'):
-            put(s[f]['ar'], s[f]['ku'])
+            if f in s: put(s[f]['ar'], s[f]['ku'])
         put('%s %s | Majeed Tea' % (s['name']['ar'], s['weight']['ar']), '%s %s | Majeed Tea' % (s['name']['ku'], s['weight']['ku']))
         if s['flavor']:
             put(s['flavor']['ar'], s['flavor']['ku'])
     return out
 
-KU_CARTONS = ku_entries(CARTONS)
+KU_CARTONS = ku_entries(NEW_PRODUCTS)
 
 # the pages the new product pages are cloned from (same layout; only the product words differ)
 TEMPLATE = {

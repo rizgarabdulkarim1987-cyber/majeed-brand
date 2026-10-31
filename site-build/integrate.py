@@ -20,7 +20,7 @@ from safari_fixes import SAFARI_CSS
 from buzzify_credit import add_credit, CREDIT_CSS, CREDIT_IMAGE
 from about_tradition import add_tradition, ABOUT_CSS
 from no_india import remove_india, check_clean
-from more_products import CARTONS, KU_CARTONS, add_products
+from more_products import CARTONS, NEW_PRODUCTS, KU_CARTONS, add_products
 
 orig_path, bundle_path, out_path = sys.argv[1:4]
 s = open(orig_path, encoding='utf-8').read()
@@ -44,9 +44,9 @@ GOLD = {
 }
 
 remove_india(pages)                       # the owner asked for every mention of "Indian" to go (before anything is cloned from these pages)
-CARTONS[0]['after'] = 'golden-600g'       # the cartons follow the tin, one after the other (the slides next to the first one stay as they were)
-for _prev, _c in zip(CARTONS, CARTONS[1:]): _c['after'] = _prev['slug']
-add_products(pages, imgs, [GOLD] + CARTONS, here)
+NEW_PRODUCTS[0]['after'] = 'golden-600g'  # the new products follow the tin, one after the other (the slides next to the first one stay as they were)
+for _prev, _c in zip(NEW_PRODUCTS, NEW_PRODUCTS[1:]): _c['after'] = _prev['slug']
+add_products(pages, imgs, [GOLD] + NEW_PRODUCTS, here)
 add_tradition(pages)
 
 # ---------------------------------------------------------------- text per language
@@ -78,10 +78,10 @@ T = {
 PICK = {
     'en': ('Choose your tea', [('cardamom-pouch', 'Cardamom Pouch', 'Pouch'), ('cardamom-450g', 'Cardamom Tea', '450 g'), ('cardamom-800g', 'Cardamom Tea', '800 g'),
                               ('cardamom-1kg', 'Cardamom Tea', '1 kg'), ('classic-450g', 'Classic Black Tea', '450 g'), ('classic-800g', 'Classic Black Tea', '800 g'),
-                              ('golden-600g', 'Golden Majeed', '600 g'), ('cardamom-4200g', 'Cardamom Tea', '4.2 kg'), ('pekoe-black-8000g', 'Pekoe Black Tea', '8 kg')]),
+                              ('golden-600g', 'Golden Majeed', '600 g'), ('cardamom-4200g', 'Cardamom Tea', '4.2 kg'), ('pekoe-black-8000g', 'Pekoe Black Tea', '8 kg'), ('premium-1kg', 'Premium Tea', '1 kg')]),
     'ar': ('اختر شايك', [('cardamom-pouch', 'كيس شاي بالهيل', 'كيس'), ('cardamom-450g', 'شاي بالهيل', '٤٥٠ غ'), ('cardamom-800g', 'شاي بالهيل', '٨٠٠ غ'),
                          ('cardamom-1kg', 'شاي بالهيل', '١ كغ'), ('classic-450g', 'الشاي الأسود الكلاسيكي', '٤٥٠ غ'), ('classic-800g', 'الشاي الأسود الكلاسيكي', '٨٠٠ غ'),
-                         ('golden-600g', 'مجيد الذهبي', '٦٠٠ غ'), ('cardamom-4200g', 'شاي بالهيل', '٤٫٢ كغ'), ('pekoe-black-8000g', 'شاي بيكو أسود', '٨ كغ')]),
+                         ('golden-600g', 'مجيد الذهبي', '٦٠٠ غ'), ('cardamom-4200g', 'شاي بالهيل', '٤٫٢ كغ'), ('pekoe-black-8000g', 'شاي بيكو أسود', '٨ كغ'), ('premium-1kg', 'شاي ممتاز', '١ كغ')]),
 }
 
 WIDE = {c['slug'] for c in CARTONS}       # the carton photos are wider than tall
@@ -138,7 +138,7 @@ WIRING = r'''  /* ---- tea game: a real WebGL 3D kitchen, five steps from leaf t
     var step1Mode = '';
     var gst = $('.gm-stage', tg), gsteps = $$('.gm-steps .gm-step', tg), gstatus = $('.gm-status', tg), glive = $('.gm-sr', tg), gmute = $('.gm-icon', tg);
     var els = { stage: gst, canvas: $('.gm-gl', tg), prompt: $('.gm-prompt', tg) };
-    var picks = $$('.gm-prod', tg), PRODS = ['cardamom-pouch', 'cardamom-450g', 'cardamom-800g', 'cardamom-1kg', 'classic-450g', 'classic-800g', 'golden-600g', 'cardamom-4200g', 'pekoe-black-8000g'];
+    var picks = $$('.gm-prod', tg), PRODS = ['cardamom-pouch', 'cardamom-450g', 'cardamom-800g', 'cardamom-1kg', 'classic-450g', 'classic-800g', 'golden-600g', 'cardamom-4200g', 'pekoe-black-8000g', 'premium-1kg'];
     var last = { done: 0 }, muted = false, doneEl = null, game = null;
     var imgOf = function (p) { return (window.__IMG && window.__IMG[p]) || p; };
     var paintGame = function (u) {
@@ -552,7 +552,7 @@ _amiri = os.path.join(here, 'fonts-open', 'amiri-arabic-400-subset.woff2')
 FONT_FACES += face('Amiri', '400', [], None, raw=_amiri)
 with open(os.path.join(here, CREDIT_IMAGE), 'rb') as fh:
     imgs[CREDIT_IMAGE] = 'data:image/webp;base64,' + base64.b64encode(fh.read()).decode()
-for slug in ('cardamom-pouch', 'cardamom-450g', 'cardamom-800g', 'cardamom-1kg', 'classic-450g', 'classic-800g', 'golden-600g', 'cardamom-4200g', 'pekoe-black-8000g'):
+for slug in ('cardamom-pouch', 'cardamom-450g', 'cardamom-800g', 'cardamom-1kg', 'classic-450g', 'classic-800g', 'golden-600g', 'cardamom-4200g', 'pekoe-black-8000g', 'premium-1kg'):
     with open(os.path.join(here, '..', 'game3d', 'products', slug + '.webp'), 'rb') as fh:
         imgs['assets/game/prod-%s.webp' % slug] = 'data:image/webp;base64,' + base64.b64encode(fh.read()).decode()
 

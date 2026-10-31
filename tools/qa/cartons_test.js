@@ -3,7 +3,7 @@
 const { chromium } = require('playwright');
 const path = require('path');
 const [, , html, out, W = '1280', H = '800', langsArg = 'en,ar,ku'] = process.argv;
-const SLUGS = ['cardamom-4200g', 'pekoe-black-8000g'];
+const SLUGS = ['cardamom-4200g', 'pekoe-black-8000g', 'premium-1kg'];
 (async () => {
   const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM || '/opt/pw-browsers/chromium', args: ['--no-sandbox', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--enable-webgl', '--allow-file-access-from-files'] });
   const page = await browser.newPage({ viewport: { width: +W, height: +H } });

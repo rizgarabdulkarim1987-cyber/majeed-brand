@@ -255,7 +255,7 @@ KU_FACTS = {
     '٢٥٠ مليون كوب شاي تم احتساؤه': '٢٥٠ ملیۆن ئیستکان چا نۆشکراو',
     '٢٬٧٠٠ سوق يتواجد فيه مجيد': '٢٬٧٠٠ بازاڕ کە مەجیدی تێدایە',
     '٨ منتجات (SKU)': '٨ بەرهەم (SKU)',
-    '١٠': '١٠', '١٠ منتجات (SKU)': '١٠ بەرهەم (SKU)',      # the range now has ten products
+    '١١': '١١', '١١ منتجات (SKU)': '١١ بەرهەم (SKU)',      # the range now has eleven products
 }
 
 # About page: "Majeed Tea — A Tradition in Every Cup" (see about_tradition.py), keyed by the exact Arabic used there

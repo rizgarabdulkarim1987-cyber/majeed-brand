@@ -234,6 +234,7 @@ export const PRODUCTS = {
   // the cartons: a thick cut-out of the pack photo (no cap); it tips from its top corner to pour
   'cardamom-4200g': { type: 'carton', h: 11.5, card: true },
   'pekoe-black-8000g': { type: 'carton', h: 12.5, card: false },
+  'premium-1kg': { type: 'pouch', h: 17.5, card: false },     // the yellow 1 kg bag: black tea only
 };
 
 /** A pack photo bent into a shallow 3D shell (like a round jar or a plump pouch): u across, v from v0 to v1 of the photo. */
