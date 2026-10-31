@@ -9,10 +9,11 @@ const [, , html, out, W = '1280', H = '800', langsArg = 'en,ar,ku'] = process.ar
   await page.goto('file://' + path.resolve(html)); await page.waitForTimeout(1000);
   const state = () => page.evaluate(() => {
     const on = [...document.querySelectorAll('.ps-dots button')].findIndex((b) => b.classList.contains('on'));
-    const fr = document.querySelector('.ps-frame').getBoundingClientRect();
-    // which slide is actually inside the frame
-    const vis = [...document.querySelectorAll('.ps-slide')].map((s, k) => { const r = s.getBoundingClientRect(); const ov = Math.min(r.right, fr.right) - Math.max(r.left, fr.left); return [k, ov]; }).sort((a, b) => b[1] - a[1])[0];
-    return { dot: on, shown: vis[0], overlap: Math.round(vis[1]), frame: [Math.round(fr.width), Math.round(fr.height)], dir: getComputedStyle(document.querySelector('.ps-track')).direction };
+    const fr = document.querySelector('.ps-frame').getBoundingClientRect(), mid = fr.left + fr.width / 2;
+    // the slide whose centre is nearest the middle of the stage must be the one marked as the current one
+    const near = [...document.querySelectorAll('.ps-slide')].map((s, k) => { const r = s.getBoundingClientRect(); return [k, Math.abs(r.left + r.width / 2 - mid), r.width]; }).sort((a, b) => a[1] - b[1])[0];
+    const marked = [...document.querySelectorAll('.ps-slide')].findIndex((s) => s.classList.contains('on'));
+    return { dot: on, shown: near[0], marked, off: Math.round(near[1]), slideW: Math.round(near[2]), stage: [Math.round(fr.width), Math.round(fr.height)], dir: getComputedStyle(document.querySelector('.ps-track')).direction };
   });
   for (const lang of langsArg.split(',')) {
     await page.evaluate((l) => window.__go(l === 'en' ? 'en-factories.html' : l + '-factories.html'), lang);
@@ -31,6 +32,10 @@ const [, , html, out, W = '1280', H = '800', langsArg = 'en,ar,ku'] = process.ar
     console.log(lang, 'swipe to next', JSON.stringify(await state()));
     await page.mouse.move(cx, cy); await page.mouse.down(); await page.mouse.move(cx - dir * 150, cy, { steps: 6 }); await page.mouse.up(); await page.mouse.move(2, 2); await page.waitForTimeout(900);
     console.log(lang, 'swipe back', JSON.stringify(await state()));
+    // tap the picture on the next side of the middle one
+    const nb = await page.evaluate((l) => { const sl = [...document.querySelectorAll('.ps-slide')], c = sl.findIndex((x) => x.classList.contains('on')), t = sl[(c + 1) % sl.length].getBoundingClientRect(), fr = document.querySelector('.ps-frame').getBoundingClientRect(), lo = Math.max(t.left, fr.left), hi = Math.min(t.right, fr.right); return { x: (lo + hi) / 2, y: t.top + t.height / 2, from: c }; }, lang);
+    await page.mouse.click(nb.x, nb.y); await page.mouse.move(2, 2); await page.waitForTimeout(900);
+    console.log(lang, 'tap neighbour (was', nb.from + ')', JSON.stringify(await state()));
     await page.screenshot({ path: path.join(out, `fs_${lang}_${W}.png`) });
     // auto-advance (pointer away from the slider)
     const before = (await state()).dot; await page.waitForTimeout(5600); const after = (await state()).dot; console.log(lang, 'auto-advance', before, '->', after);

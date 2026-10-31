@@ -22,6 +22,7 @@ from about_tradition import add_tradition, ABOUT_CSS
 from no_india import remove_india, check_clean
 from copy_edits import apply_copy_edits, KU_COPY
 from factory_slider import add_factory_slider, KU_SLIDER, SLIDER_CSS, SLIDER_JS
+from favicon import FAVICON_LINKS
 from more_products import CARTONS, NEW_PRODUCTS, KU_CARTONS, add_products
 
 orig_path, bundle_path, out_path = sys.argv[1:4]
@@ -566,6 +567,9 @@ SIGNATURE_JAR, REAL_JAR = 'assets/majeed-signature-jar.webp', 'assets/revised-ca
 for key in list(pages):
     pages[key] = pages[key].replace(SIGNATURE_JAR, REAL_JAR)
 check_clean(pages)                        # no page, in any language, may still say "Indian"
+for key in list(pages):                   # the favicon (the Majeed logo) in the head of every page; the icon files are in the site root (see favicon.py)
+    assert 0 <= pages[key].find('<title>') < pages[key].find('</head>'), key         # (the home page has a second <title> in its body; only the one in the head matters)
+    pages[key] = pages[key].replace('<title>', FAVICON_LINKS + '<title>', 1)
 # ---------------------------------------------------------------- images: drop what only the old 2D game used
 blob = json.dumps(pages, ensure_ascii=False)
 for k in list(imgs):
@@ -591,5 +595,7 @@ new = new[:k] + '/* Majeed tea game: real WebGL 3D engine */\n' + bundle + '\n' 
 old_swap = 'document.open();document.write(h)'
 assert old_swap in new
 new = new.replace(old_swap, 'if(window.__mjGame){try{window.__mjGame.dispose()}catch(e){}window.__mjGame=null}' + old_swap, 1)
+assert new.count('<title>Majeed Tea</title></head>') == 1
+new = new.replace('<title>Majeed Tea</title></head>', '<title>Majeed Tea</title>' + FAVICON_LINKS + '</head>', 1)      # the shell page too
 open(out_path, 'w', encoding='utf-8').write(new)
 print('written', out_path, len(new), 'bytes; images kept:', len(imgs))
